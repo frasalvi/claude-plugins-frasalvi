@@ -1,0 +1,8 @@
+{
+    "name": "project-oversight",
+    "description": "A plugin for overseeing and managing projects, breaking them down into manageable milestones and tasks.",
+    "author": {
+        "name": "Francesco Salvi",
+        "email": "salvi.fnc@gmail.com"
+    }
+}

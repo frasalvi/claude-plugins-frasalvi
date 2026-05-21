@@ -1,0 +1,17 @@
+{
+  "name": "research-companion",
+  "version": "1.2.3",
+  "description": "Strategic research thinking agents — idea evaluation, project triage, and structured brainstorming inspired by Carlini's research methodology",
+  "author": {
+    "name": "Francesco Salvi",
+    "url": "https://frasalvi.github.io/"
+  },
+  "license": "MIT",
+  "keywords": [
+    "research",
+    "brainstorming",
+    "idea-evaluation",
+    "strategy",
+    "academic"
+  ]
+}
