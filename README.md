@@ -1,2 +1,2 @@
 # claude-plugins-frasalvi
-Custom plugins set for Claude Code
+Marketplace to add my custom set of plugins for Claude Code
