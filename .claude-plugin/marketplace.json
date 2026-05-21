@@ -1,6 +1,6 @@
 {
     "name": "frasalvi-project-oversight",
-    "description": "Directory for of custom plugins for Claude Code",
+    "description": "Marketplace for my custom set of plugins for Claude Code",
     "owner": {
         "name": "Francesco Salvi",
         "email": "salvi.fnc@gmail.com"
@@ -9,7 +9,7 @@
         {
             "name": "research-companion",
             "description": "Strategic research companion — brainstorm, evaluate, and decide on research directions",
-            "source": "./",
+            "source": "./plugins/research-companion",
             "category": "productivity",
             "version": "1.0.0",
             "license": "MIT",
@@ -24,7 +24,7 @@
         {
             "name": "project-oversight",
             "description": "A plugin for overseeing and managing projects, breaking them down into manageable milestones and tasks.",
-            "source": "./",
+            "source": "./plugins/project-oversight",
             "category": "productivity",
             "version": "1.0.0",
             "license": "MIT",
@@ -38,7 +38,7 @@
         {
             "name": "pr-review-triage",
             "description": "A plugin for triaging and reviewing pull requests.",
-            "source": "./",
+            "source": "./plugins/pr-review-triage",
             "category": "productivity",
             "version": "1.0.0",
             "license": "MIT",
