@@ -7,6 +7,21 @@
     },
     "plugins": [
         {
+            "name": "team-development",
+            "description": "Plan execution with persistent agent-team workers — domain-scoped teammates, ask-don't-guess escalation, and right-sized reviews. Companion to superpowers.",
+            "source": "./plugins/team-development",
+            "category": "productivity",
+            "version": "0.1.0",
+            "license": "MIT",
+            "keywords": [
+                "agent-teams",
+                "teammates",
+                "plan-execution",
+                "superpowers",
+                "orchestration"
+            ]
+        },
+        {
             "name": "research-companion",
             "description": "Strategic research companion — brainstorm, evaluate, and decide on research directions",
             "source": "./plugins/research-companion",
