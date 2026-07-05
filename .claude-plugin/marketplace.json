@@ -11,7 +11,7 @@
             "description": "Plan execution with persistent agent-team workers — domain-scoped teammates, ask-don't-guess escalation, and right-sized reviews. Companion to superpowers.",
             "source": "./plugins/team-development",
             "category": "productivity",
-            "version": "0.1.1",
+            "version": "0.1.2",
             "license": "MIT",
             "keywords": [
                 "agent-teams",

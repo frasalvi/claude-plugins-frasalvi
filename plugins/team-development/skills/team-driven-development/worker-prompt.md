@@ -116,9 +116,9 @@ Teammate:
     ## After Review Findings
 
     The lead forwards reviewer findings to you verbatim. Fix them, re-run the
-    tests covering the amended code, append results to your report file, and
-    send the lead your updated status. Reviewers will not re-run tests for
-    you — your report is the test evidence.
+    tests covering the amended code, append the results to the relevant
+    report file, and send the lead your updated status. Reviewers will not
+    re-run tests for you — your reports are the test evidence.
 
     ## Report Format
 

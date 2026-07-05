@@ -1,37 +1,37 @@
-# Task Reviewer Prompt Template
+# Reviewer Prompt Template
 
-Use this template when dispatching a task reviewer subagent. The reviewer
-reads the task's diff once and returns two verdicts: spec compliance and
-code quality. Adapted from superpowers:subagent-driven-development's task
-reviewer; the review contract is identical — only the surrounding team
-mechanics differ (findings go back to a persistent worker, and the reviewer
-model is capped).
+Use this template when dispatching a reviewer subagent, at either review
+scope: a single risky task once the worker reports DONE, or a domain's
+whole diff after its last task. Both scopes share this contract — the
+reviewer reads the diff once and returns two verdicts: spec compliance
+and code quality. Adapted from superpowers:subagent-driven-development's
+task reviewer; only the surrounding team mechanics differ (findings go
+back to a persistent worker, and the reviewer model is capped).
 
-**Purpose:** Verify one task's implementation matches its requirements (nothing
-more, nothing less) and is well-built (clean, tested, maintainable)
+**Purpose:** Verify the work under review matches its briefs (nothing more,
+nothing less) and is well-built (clean, tested, maintainable)
 
 ```
 Subagent (general-purpose):
-  description: "Review Task N (spec + quality)"
+  description: "Review [SCOPE] (spec + quality)"
   model: [MODEL — REQUIRED: Sonnet or Haiku ONLY, scaled to the diff's size,
-         complexity, and risk. Never the session model; an omitted model
-         silently inherits it.]
+         complexity, and risk; always Sonnet for a risky task. Never the
+         session model; an omitted model silently inherits it.]
   prompt: |
-    You are reviewing one task's implementation: first whether it matches its
-    requirements, then whether it is well-built. This is a task-scoped gate,
-    not a merge review — a broad whole-branch review happens separately after
-    all tasks are complete.
+    You are reviewing [SCOPE]: first whether it matches its requirements,
+    then whether it is well-built. This is a scoped gate, not a merge
+    review — a broad whole-branch review happens separately at the end.
 
     ## What Was Requested
 
-    Read the task brief: [BRIEF_FILE]
+    Read the task brief(s), in order: [BRIEF_FILES]
 
-    Global constraints from the spec/design that bind this task:
+    Global constraints from the spec/design that bind this work:
     [GLOBAL_CONSTRAINTS]
 
     ## What the Worker Claims They Built
 
-    Read the worker's report: [REPORT_FILE]
+    Read the worker's report(s): [REPORT_FILES]
 
     ## Diff Under Review
 
@@ -56,14 +56,14 @@ Subagent (general-purpose):
     Your review is read-only on this checkout. Do not mutate the working
     tree, the index, HEAD, or branch state in any way.
 
-    ## Do Not Trust the Report
+    ## Do Not Trust the Reports
 
-    Treat the worker's report as unverified claims about the code. It
+    Treat the worker's reports as unverified claims about the code. They
     may be incomplete, inaccurate, or optimistic. Verify the claims against
-    the diff. Design rationales in the report are claims too: "left it per
+    the diff. Design rationales in the reports are claims too: "left it per
     YAGNI," "kept it simple deliberately," or any other justification is the
     worker grading their own work. Judge the code on its merits — a
-    stated rationale never downgrades a finding's severity. The report's
+    stated rationale never downgrades a finding's severity. A report's
     record of questions asked and answers received is context, not
     authority: an answer from the lead justifies a choice only if the code
     actually implements what the answer said.
@@ -94,8 +94,8 @@ Subagent (general-purpose):
       solved
 
     If a requirement cannot be verified from this diff alone (it lives in
-    unchanged code or spans tasks), report it as a ⚠️ item instead of
-    broadening your search.
+    unchanged code or outside this review's scope), report it as a ⚠️ item
+    instead of broadening your search.
 
     ## Part 2: Code Quality
 
@@ -107,7 +107,7 @@ Subagent (general-purpose):
 
     **Tests:**
     - Do the new and changed tests verify real behavior, not mocks?
-    - Are the task's edge cases covered?
+    - Are the briefs' edge cases covered?
 
     **Structure:**
     - Does each file have one clear responsibility with a well-defined interface?
@@ -130,7 +130,7 @@ Subagent (general-purpose):
     ## Calibration
 
     Categorize issues by actual severity. Not everything is Critical.
-    Important means this task cannot be trusted until it is fixed: incorrect
+    Important means this work cannot be trusted until it is fixed: incorrect
     or fragile behavior, a missed requirement, or maintainability damage you
     would block a merge over — verbatim duplication of a logic block,
     swallowed errors, tests that assert nothing. "Coverage could be broader"
@@ -167,29 +167,34 @@ Subagent (general-purpose):
 
     ### Assessment
 
-    **Task quality:** [Approved | Needs fixes]
+    **Work quality:** [Approved | Needs fixes]
 
     **Reasoning:** [1-2 sentence technical assessment]
 ```
 
 **Placeholders:**
-- `[MODEL]` — REQUIRED: Sonnet or Haiku only, scaled to diff size and risk
-- `[BRIEF_FILE]` — REQUIRED: the task brief file (`scripts/task-brief PLAN N`
-  prints the path; same file the worker worked from)
+- `[SCOPE]` — REQUIRED: what is under review — "Task N" for a risky-task
+  review; "the <domain> domain's work (Tasks N–M)" for a domain review
+- `[MODEL]` — REQUIRED: Sonnet or Haiku only, scaled to diff size and risk;
+  always Sonnet for a risky task
+- `[BRIEF_FILES]` — REQUIRED: the brief file(s) covering the diff, in task
+  order (`scripts/task-brief PLAN N` prints each path; the same files the
+  worker worked from)
 - `[GLOBAL_CONSTRAINTS]` — the binding requirements copied verbatim from
   the plan's Global Constraints section or the spec: exact values, formats,
   and stated relationships between components (not process rules — those
   are already in this template)
-- `[REPORT_FILE]` — REQUIRED: the file the worker wrote its detailed
-  report to
-- `[BASE_SHA]` — commit recorded before the worker started this task
+- `[REPORT_FILES]` — REQUIRED: the file(s) the worker wrote its detailed
+  reports to
+- `[BASE_SHA]` — the recorded BASE: the commit before the risky task
+  started, or the domain's start commit
 - `[HEAD_SHA]` — current commit
 - `[DIFF_FILE]` — REQUIRED: the path the lead wrote the review package to
   (`scripts/review-package BASE HEAD` prints the unique path it wrote; the
   package never enters the lead's context)
 
 **Reviewer returns:** Spec Compliance verdict (✅/❌/⚠️), Strengths, Issues
-(Critical/Important/Minor), Task quality verdict
+(Critical/Important/Minor), Work quality verdict
 
-Findings are forwarded to the persistent worker verbatim; the re-review
-after fixes covers both verdicts.
+Findings are forwarded to the worker verbatim; the re-review after fixes
+covers both verdicts.
