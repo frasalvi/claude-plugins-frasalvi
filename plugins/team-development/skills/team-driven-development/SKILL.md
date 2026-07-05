@@ -1,41 +1,36 @@
 ---
 name: team-driven-development
-description: Use when executing implementation plans in a session where Claude Code agent teams are available (CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS enabled)
+description: Use when executing implementation plans in the current session
 ---
 
 # Team-Driven Development
 
 Execute a plan by leading persistent worker teammates: one worker per context domain, task triage before every dispatch, live question-answering while workers work, fresh reviewer subagents after substantive tasks, and a whole-branch review at the end.
 
-**Why teammates instead of one-shot subagents:** a persistent worker onboards to its code area once, not once per task, and it can message you the moment it hits ambiguity instead of guessing or dying BLOCKED. You hold the plan, the spec, and access to your human partner; the worker holds its domain. Questions flow up, decisions flow down.
-
-**Core principle:** Persistent domain workers + ask-don't-guess + right-sized process = cheaper AND more correct than a fresh subagent per task.
+You hold the plan, the spec, and access to your human partner; each worker holds its domain. Questions flow up, decisions flow down. Workers stay for their whole domain — they onboard to their code area once and carry that knowledge across tasks.
 
 **Narration:** between tool calls, narrate at most one short line — the ledger and the tool results carry the record.
 
-**Continuous execution:** do not pause to check in with your human partner between tasks or between domains. The only reasons to stop: a BLOCKED status you cannot resolve, a decision that is genuinely your human partner's to make (see Escalation), or all tasks complete.
+**Continuous execution:** do not pause to check in with your human partner between tasks or between domains. The reasons to stop: a BLOCKED status you cannot resolve, a decision that is genuinely your human partner's to make (see Answering Worker Questions), results that need their review — validation results, benchmark numbers, experiment outcomes — or all tasks complete.
 
 ## When to Use
 
 ```dot
 digraph when_to_use {
     "Have implementation plan?" [shape=diamond];
-    "Agent teams available?" [shape=diamond];
-    "More than a handful of trivial tasks?" [shape=diamond];
+    "Only a handful of trivial tasks?" [shape=diamond];
     "team-driven-development" [shape=box];
-    "superpowers:subagent-driven-development" [shape=box];
+    "superpowers:executing-plans" [shape=box];
     "Brainstorm or plan first" [shape=box];
 
-    "Have implementation plan?" -> "Agent teams available?" [label="yes"];
+    "Have implementation plan?" -> "Only a handful of trivial tasks?" [label="yes"];
     "Have implementation plan?" -> "Brainstorm or plan first" [label="no"];
-    "Agent teams available?" -> "More than a handful of trivial tasks?" [label="yes"];
-    "Agent teams available?" -> "superpowers:subagent-driven-development" [label="no"];
-    "More than a handful of trivial tasks?" -> "team-driven-development" [label="yes"];
-    "More than a handful of trivial tasks?" -> "superpowers:subagent-driven-development" [label="no"];
+    "Only a handful of trivial tasks?" -> "superpowers:executing-plans" [label="yes"];
+    "Only a handful of trivial tasks?" -> "team-driven-development" [label="no"];
 }
 ```
 
-"Agent teams available" means the teams tools (TeamCreate, SendMessage, TaskCreate) exist in this session. If they don't, fall back to superpowers:subagent-driven-development — plans are format-identical, nothing is lost.
+If the team tools (TeamCreate, SendMessage, TaskCreate) are missing from this session, fall back to superpowers:subagent-driven-development — plans are format-identical, nothing is lost.
 
 ## Team Structure
 
@@ -48,16 +43,20 @@ digraph when_to_use {
 
 Workers are teammates because they benefit from persistence: codebase knowledge accumulates across tasks, and review fixes go to someone who remembers writing the code. Reviewers are subagents because they benefit from fresh eyes: no accumulated bias from watching the code get written. Do not invert this.
 
-The expensive models appear exactly twice in a run: you, and the final review. A cheap worker with a live escalation hatch to you behaves like a much smarter model — premium prices are paid for judgment moments, not typing.
-
 ## Context Domains
 
-At plan read, segment the plan's tasks into **context domains** — groups that share files, interfaces, or knowledge. The plan's existing phases are usually the right boundaries. Write the domain map into the ledger before spawning anything.
+At plan read, segment the plan's tasks into **context domains** — groups that share files, interfaces, or knowledge. A domain is the unit of worker context: one worker per domain, spawned at domain start, shut down at domain end after its journal is written.
 
-- One worker per domain: spawned at domain start, shut down at domain end after its journal is written.
-- Sequential domains hand off through the journal — the successor inherits the interface knowledge that matters and nothing else.
-- If you cannot tell whether two segments are independent, ask your human partner once at kickoff, folded into the pre-flight question batch. Do not interrupt mid-execution for segmentation doubts you could have raised at the start.
-- There is no respawn logic: worker lifetime is the domain. If your human partner observes a degraded worker, they will refresh it manually — journal plus `git log` seed a replacement.
+Most plans do not mark this structure — a flat plan with 20 tasks is normal. Derive it yourself from task ordering and per-task file lists: which tasks touch the same code, which consume interfaces earlier tasks produce. YOU decide the batching and the worker assignments; the plan won't.
+
+Domains relate to each other in two ways, and both are normal:
+
+- **Dependent** (one consumes what the other produces, or they touch the same files): run them in sequence. The successor worker inherits through the journal — the interface knowledge that matters and nothing else.
+- **Disjoint** (no file overlap, no output→input dependency): they may run in parallel, each worker with its own territory. See Parallel Domains.
+
+If you cannot tell whether two domains are disjoint, ask your human partner once at kickoff, folded into the pre-flight question batch. Do not interrupt mid-execution for segmentation doubts you could have raised at the start.
+
+There is no respawn logic: worker lifetime is the domain. If your human partner observes a degraded worker, they will refresh it manually — journal plus `git log` seed a replacement.
 
 **Name workers by their domain** (`data-pipeline`, `react-frontend`), never by number. The spawn prompt's identity block gives each worker its territory and its expertise: when the domain partition is technology-shaped, name the role explicitly and instruct the worker to act as that specialist ("you are the React specialist; act as a senior React engineer"); otherwise describe the subsystem expertise ("you are the specialist for the training loop").
 
@@ -118,7 +117,7 @@ digraph process {
 
 ## Pre-Flight Plan Review
 
-Before spawning anything, scan the plan once for conflicts — tasks that contradict each other or the plan's Global Constraints, and anything the plan explicitly mandates that the review rubric treats as a defect. Add segmentation doubts (which phases are independent?) to the same batch. Present everything as ONE batched question to your human partner before execution begins. If the scan is clean, proceed without comment.
+Before spawning anything, scan the plan once for conflicts — tasks that contradict each other or the plan's Global Constraints, and anything the plan explicitly mandates that the review rubric treats as a defect. Add segmentation doubts (which domains are disjoint?) to the same batch. Present everything as ONE batched question to your human partner before execution begins. If the scan is clean, proceed without comment.
 
 ## Task Triage
 
@@ -143,14 +142,14 @@ Triage honestly. A task is trivial only when the plan's text already contains th
 
 Workers are instructed to message you the moment they hit ambiguity, an unexpected obstacle, or a decision with consequences beyond their territory. Handling their questions well is the correctness core of this skill:
 
-- **Answer from the plan, the spec, or the codebase** whenever the answer is derivable. Ordinary engineering judgment within the plan's intent is yours to exercise — that is why you run on the strongest model.
-- **Escalate to your human partner** when: the plan or spec is wrong, contradictory, or contradicted by a review finding; the decision changes scope, external interfaces, or dependencies beyond what the spec pins down; or resolution requires non-trivial re-planning. Plan conflicts are ALWAYS your human partner's call.
+- **Answer from the plan, the spec, or the codebase** whenever the answer is derivable. Ordinary engineering judgment within the plan's intent is yours to exercise.
+- **Escalate to your human partner** when: the plan or spec is wrong, contradictory, or contradicted by a review finding; the decision changes scope, external interfaces, or dependencies beyond what the spec pins down; resolution requires non-trivial re-planning; or a task produced results your human partner needs to see — validation results, benchmark numbers, experiment outcomes that inform judgment. Plan conflicts are ALWAYS your human partner's call.
 - **Never answer by guessing when the plan is silent** on something that matters. "The spec doesn't say" plus "it has consequences beyond the task" equals escalation, not improvisation.
 - Answer promptly — a worker waiting on you is idle capacity — but completely. A terse answer that triggers two follow-up questions is slower than a full answer.
 
 ## Handling Worker Status
 
-Workers report `DONE`, `DONE_WITH_CONCERNS`, or `BLOCKED`. There is deliberately no NEEDS_CONTEXT: with a live channel, missing information is a mid-task question, never an exit status.
+Workers report `DONE`, `DONE_WITH_CONCERNS`, or `BLOCKED`. Missing information is never an exit status — workers ask mid-task.
 
 **DONE:** generate the review package (`scripts/review-package BASE HEAD` — prints the path it wrote) and dispatch the task reviewer with it.
 
@@ -165,22 +164,22 @@ Workers report `DONE`, `DONE_WITH_CONCERNS`, or `BLOCKED`. There is deliberately
 - Per-task reviews are task-scoped gates on standard and risky tiers. Reviewer model is Sonnet or Haiku, scaled to the diff — a subtle concurrency change gets Sonnet; a small mechanical diff gets Haiku. Never the session model.
 - The reviewer gets three paths — brief file, report file, review package — plus the plan's binding Global Constraints copied verbatim. The template carries the process rules; the constraints block is for what THIS project's spec demands.
 - Do not pre-judge findings: never tell a reviewer what not to flag or pre-rate a finding's severity. Adjudicate in the loop.
-- **Forward findings to the same worker VERBATIM.** Never paraphrase, summarize, or soften review findings — paraphrase drift is a correctness risk and the token cost is negligible. The worker fixes, re-runs the covering tests, appends to its report file; then dispatch a fresh re-review. Repeat until clean.
+- **Forward findings to the same worker VERBATIM.** Never paraphrase, summarize, or soften review findings. The worker fixes, re-runs the covering tests, appends to its report file; then dispatch a fresh re-review. Repeat until clean.
 - A worker failing the same task through two full review cycles means stop: escalate to your human partner with the findings. No third identical attempt.
 - Record Minor findings in the ledger as you go; point the final whole-branch review at that list to triage what must be fixed before merge.
 - A finding that conflicts with what the plan's text mandates is your human partner's decision — present the finding and the plan text, ask which governs.
 - **Final whole-branch review:** after all domains complete, run `scripts/review-package MERGE_BASE HEAD` (MERGE_BASE = `git merge-base main HEAD`) and dispatch superpowers:requesting-code-review's code-reviewer template on **Opus** with the package path. If it returns findings, dispatch ONE fix subagent with the complete findings list — not one fixer per finding.
 
-## Concurrency
+## Parallel Domains
 
-Independent domains — no file overlap, no output→input dependency — may run concurrently. **Maximum 2 workers. Default 1. Serialize when unsure**; merge conflicts cost more than the time saved.
+Disjoint domains — no file overlap, no output→input dependency — may run in parallel, one worker each. **Serialize when unsure**; merge conflicts cost more than the time saved.
 
-When running 2:
+When running parallel workers:
 
-- **Strict file ownership:** every file has exactly one owner; shared types are created by one domain and read-only for the other. If ownership cannot be partitioned cleanly, the domains were not independent — serialize them.
-- **Worktree isolation:** each concurrent worker gets its own git worktree on its own branch off the feature branch. You merge each domain branch back into the feature branch at domain completion. (Sequential execution stays in the single feature worktree; no merging.)
-- A file conflict despite the ownership map is a segmentation error: stop both workers, resolve ownership, reassign, and record it in the ledger.
-- Every active worker adds question traffic to you, and your careful answers are the correctness mechanism. That, as much as merge risk, is why the cap is 2.
+- **Strict file ownership:** every file has exactly one owner; shared types are created by one domain and read-only for the others. If ownership cannot be partitioned cleanly, the domains were not disjoint — serialize them.
+- **Worktree isolation:** each parallel worker gets its own git worktree on its own branch off the feature branch. You merge each domain branch back into the feature branch at domain completion. (Sequential execution stays in the single feature worktree; no merging.)
+- A file conflict despite the ownership map is a segmentation error: stop the workers involved, resolve ownership, reassign, and record it in the ledger.
+- Every active worker adds question traffic to you, and your careful answers are the correctness mechanism. Run only as many parallel workers as you can answer attentively.
 
 ## Durable Progress: Ledger and Journal
 
@@ -207,10 +206,11 @@ Everything you paste into a message stays resident in your context for the rest 
 - Dispatch a task reviewer on the session model, or a final review on anything but Opus
 - Paraphrase review findings — forward verbatim
 - Answer a worker's question by guessing when the plan is silent and the decision matters — escalate
+- Push on past results your human partner needs to see (validation results, benchmark numbers) without checking in
 - Let a BLOCKED-without-asking report pass without pushback
 - Accept a review missing either verdict (spec compliance AND task quality)
 - Move on with unfixed Critical/Important findings, or skip the re-review after fixes
-- Run more than 2 workers, or run 2 without a clean file-ownership partition
+- Run parallel workers without a clean file-ownership partition
 - Give a worker its next task while its current task has an open review
 - Make a worker read the plan file (hand it its task brief instead)
 - Read journal content into your own context
@@ -228,12 +228,13 @@ Everything you paste into a message stays resident in your context for the rest 
 
 **Required workflow skills:**
 - **superpowers:writing-plans** — creates the plan this skill executes (standard format; no team-specific plan changes)
-- **superpowers:using-git-worktrees** — feature worktree at kickoff; per-worker worktrees when running 2
+- **superpowers:using-git-worktrees** — feature worktree at kickoff; per-worker worktrees for parallel domains
 - **superpowers:requesting-code-review** — template for the final whole-branch review
 - **superpowers:finishing-a-development-branch** — after the final review
 
 **Workers use:**
 - **superpowers:test-driven-development** — workers follow TDD per task
 
-**Fallback:**
-- **superpowers:subagent-driven-development** — same plans, one-shot subagents; use when teams are unavailable or the plan is a handful of trivial tasks
+**Alternatives:**
+- **superpowers:executing-plans** — when the plan is only a handful of trivial tasks
+- **superpowers:subagent-driven-development** — same plans, one-shot subagents; use when team tools are missing from the session

@@ -72,9 +72,9 @@ Teammate:
     brief explicitly delegates to you.
 
     Asking is never penalized and never counts against you. Guessing on an
-    ambiguous point is the failure mode of this whole setup. A wrong guess
-    costs a review cycle; a question costs one message. While waiting on an
-    answer, continue any part of the task the answer doesn't touch.
+    ambiguous point is the failure mode. A wrong guess costs a review cycle;
+    a question costs one message. While waiting on an answer, continue any
+    part of the task the answer doesn't touch.
 
     ## Code Organization
 
