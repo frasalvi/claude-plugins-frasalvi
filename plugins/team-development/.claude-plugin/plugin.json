@@ -1,6 +1,6 @@
 {
   "name": "team-development",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Plan execution with persistent agent-team workers — domain-scoped teammates, ask-don't-guess escalation, and right-sized reviews. Companion to superpowers.",
   "author": {
     "name": "Francesco Salvi",

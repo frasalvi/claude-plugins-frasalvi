@@ -30,7 +30,7 @@ digraph when_to_use {
 }
 ```
 
-If the team tools (TeamCreate, SendMessage, TaskCreate) are missing from this session, fall back to superpowers:subagent-driven-development — plans are format-identical, nothing is lost.
+If this session cannot message other agents (no SendMessage tool), fall back to superpowers:subagent-driven-development — plans are format-identical, nothing is lost.
 
 ## Team Structure
 
@@ -88,7 +88,7 @@ digraph process {
     "Worker finalizes journal, confirm shutdown" [shape=box];
     "Domains remain?" [shape=diamond];
     "Dispatch final whole-branch reviewer (Opus)" [shape=box];
-    "TeamDelete, then superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
+    "superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
 
     "Read plan, pre-flight review, segment into domains, write ledger" -> "Create feature worktree (superpowers:using-git-worktrees)";
     "Create feature worktree (superpowers:using-git-worktrees)" -> "Spawn worker(s) for current domain(s) (./worker-prompt.md)";
@@ -111,7 +111,7 @@ digraph process {
     "Worker finalizes journal, confirm shutdown" -> "Domains remain?";
     "Domains remain?" -> "Spawn worker(s) for current domain(s) (./worker-prompt.md)" [label="yes"];
     "Domains remain?" -> "Dispatch final whole-branch reviewer (Opus)" [label="no"];
-    "Dispatch final whole-branch reviewer (Opus)" -> "TeamDelete, then superpowers:finishing-a-development-branch";
+    "Dispatch final whole-branch reviewer (Opus)" -> "superpowers:finishing-a-development-branch";
 }
 ```
 
@@ -192,10 +192,11 @@ Everything you paste into a message stays resident in your context for the rest 
 
 ## Team Lifecycle
 
-1. **Create** the team at kickoff, after the ledger is written.
-2. **Spawn** the current domain's worker(s) from ./worker-prompt.md — always specify the model explicitly; an omitted model silently inherits your session's most expensive one.
-3. **Shut down** each worker at domain end: confirm its journal is finalized on disk FIRST, then send the shutdown request and wait for confirmation.
-4. **TeamDelete** only after all workers have confirmed shutdown and all journals exist.
+The team is implicit — there is no team object to create or delete. A worker exists from the moment you spawn it as a named background teammate until it confirms shutdown.
+
+1. **Spawn** the current domain's worker(s) from ./worker-prompt.md — always name them, and always specify the model explicitly; an omitted model silently inherits your session's most expensive one.
+2. **Shut down** each worker at domain end: confirm its journal is finalized on disk FIRST, then send the shutdown request and wait for confirmation.
+3. **Start the final whole-branch review** only after every worker has confirmed shutdown and every journal exists.
 
 ## Red Flags
 
@@ -214,7 +215,7 @@ Everything you paste into a message stays resident in your context for the rest 
 - Give a worker its next task while its current task has an open review
 - Make a worker read the plan file (hand it its task brief instead)
 - Read journal content into your own context
-- Shut a worker down before its journal is finalized, or TeamDelete before all workers confirm shutdown
+- Shut a worker down before its journal is finalized, or start the final review while workers are still running
 - Re-dispatch a task the ledger already marks complete — check the ledger and `git log` after any compaction or resume
 - Skip the final whole-branch review
 
@@ -237,4 +238,4 @@ Everything you paste into a message stays resident in your context for the rest 
 
 **Alternatives:**
 - **superpowers:executing-plans** — when the plan is only a handful of trivial tasks
-- **superpowers:subagent-driven-development** — same plans, one-shot subagents; use when team tools are missing from the session
+- **superpowers:subagent-driven-development** — same plans, one-shot subagents; use when the session cannot message other agents
