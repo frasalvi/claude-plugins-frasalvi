@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Resolve and ensure the working-tree directory team-driven-development uses
+# for its artifacts: task briefs, worker reports, review packages, the
+# progress ledger, and domain journals. Print the directory's absolute path.
+#
+# Adapted from superpowers:subagent-driven-development's sdd-workspace
+# (vendored: referencing another plugin's scripts requires a version-pinned
+# cache path that breaks on plugin updates).
+#
+# The workspace lives in the working tree (not under .git/) because Claude Code
+# treats .git/ as a protected path and denies agent writes there — which blocks
+# a worker from writing its report or journal. A self-ignoring .gitignore keeps
+# the workspace out of `git status` and out of accidental commits without
+# modifying any tracked file.
+#
+# Single source of truth for the workspace location, so task-brief and
+# review-package cannot drift to different directories.
+#
+# Usage: team-workspace
+set -euo pipefail
+
+root=$(git rev-parse --show-toplevel)
+dir="$root/.superpowers/team-dev"
+mkdir -p "$dir"
+printf '*\n' > "$dir/.gitignore"
+cd "$dir" && pwd
