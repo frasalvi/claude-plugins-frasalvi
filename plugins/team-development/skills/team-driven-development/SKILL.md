@@ -185,18 +185,18 @@ When running parallel workers:
 
 Two artifacts, deliberately kept apart, both in the git-ignored workspace (`scripts/team-workspace` prints the directory):
 
-- **Ledger** (`progress.md`) — YOUR memory, the only bookkeeping in your context: the domain map, one line per completed task (`Task N: complete (commits <base7>..<head7>, review clean)`), Minor findings, segmentation errors. At skill start, check for an existing ledger — tasks marked complete are DONE; resume at the first task not marked complete. After compaction, trust the ledger and `git log` over your own recollection.
+- **Ledger** (`progress.md`) — YOUR memory, the only bookkeeping in your context: the domain map, one line per completed task (`Task N: complete (commits <base7>..<head7>, review clean)`), Minor findings, segmentation errors. At skill start, check for an existing ledger — tasks marked complete are DONE; resume at the first task not marked complete. After compaction or resume, trust the ledger and `git log` over your own recollection.
 - **Journal** (`journal-<domain>.md`) — the WORKERS' inheritance: each worker appends to its own journal after every task (files touched, interfaces created, conventions established, gotchas). You handle only the path, never the content. A successor worker's spawn prompt lists the journal paths of the domains it depends on. Do not read journals into your own context; do not summarize them for workers.
 
 Everything you paste into a message stays resident in your context for the rest of the session. Hand artifacts over as files: briefs, reports, review packages, journals. Messages carry paths and short statuses.
 
 ## Team Lifecycle
 
-The team is implicit — there is no team object to create or delete. A worker exists from the moment you spawn it as a named background teammate until it confirms shutdown.
-
-1. **Spawn** the current domain's worker(s) from ./worker-prompt.md — always name them, and always specify the model explicitly; an omitted model silently inherits your session's most expensive one.
+1. **Spawn** the current domain's worker(s) from ./worker-prompt.md — always specify the model explicitly; teammates do not inherit your model selection.
 2. **Shut down** each worker at domain end: confirm its journal is finalized on disk FIRST, then send the shutdown request and wait for confirmation.
 3. **Start the final whole-branch review** only after every worker has confirmed shutdown and every journal exists.
+
+Workers do not survive a session resume. On resume, spawn fresh workers — do not message the old names.
 
 ## Red Flags
 

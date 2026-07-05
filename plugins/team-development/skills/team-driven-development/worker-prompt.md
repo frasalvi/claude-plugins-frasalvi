@@ -8,8 +8,8 @@ later as thin messages carrying a brief path.
 Teammate:
   name: [DOMAIN_NAME — e.g. "data-pipeline", "react-frontend"; never "worker-1"]
   model: [MODEL — REQUIRED: Sonnet by default; Haiku only when this domain's
-         tasks are pure transcription of plan-provided code. An omitted model
-         silently inherits the lead's session model.]
+         tasks are pure transcription of plan-provided code. Teammates do not
+         inherit the lead's model — never omit this.]
   prompt: |
     You are the [DOMAIN_NAME] specialist for this project.
     [ROLE_LINE — technology-shaped domain: "Act as a senior React engineer:
