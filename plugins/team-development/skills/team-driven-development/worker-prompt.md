@@ -67,7 +67,8 @@ Teammate:
 
     A full suite after every task re-runs hundreds of tests a scoped change
     could not have touched, and is one of the largest costs in this workflow.
-    Background anything slow with `run_in_background` instead of watching it.
+    Run slow commands in the foreground and wait them out — do not send them
+    to the background (below).
 
     Name what you ran and its result in your report; reviewers do not re-run
     your tests.
@@ -106,9 +107,16 @@ Teammate:
       you yield anyway, and working on means building on the guess you asked
       to avoid. A short turn ending in a question gets an answer in one round
       trip.
-    - **Never block on `sleep` or a long foreground wait** — it extends your
-      turn and delays every message already sent to you. Background long
-      commands and check them on a later turn.
+    - **Do not use `run_in_background`.** The tool answers "you will be
+      notified when it completes"; for a teammate that promise does not
+      hold. Only an arriving message starts a turn, so a job you launch and
+      then yield on finishes into silence — its result is stranded and you
+      are stuck until a human notices and has the lead ping you. Run long
+      commands in the foreground and wait, even for many minutes: a turn
+      that runs long only delays your inbox, while a stranded background
+      job halts the run. If something must go to the background, poll it
+      with `BashOutput` in the same turn and never yield before you have
+      its output.
     - **Bound your turns at checkpoints.** Before anything expensive,
       irreversible, or scope-expanding — a large refactor, a schema change,
       deleting or moving files, adding a dependency, touching a file outside
