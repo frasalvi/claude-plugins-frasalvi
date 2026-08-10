@@ -3,13 +3,8 @@
 Use this template when dispatching a reviewer subagent, at either review
 scope: a single risky task once the worker reports DONE, or a domain's
 whole diff after its last task. Both scopes share this contract — the
-reviewer reads the diff once and returns two verdicts: spec compliance
-and code quality. Adapted from superpowers:subagent-driven-development's
-task reviewer; only the surrounding team mechanics differ (findings go
-back to a persistent worker, and the reviewer model is capped).
-
-**Purpose:** Verify the work under review matches its briefs (nothing more,
-nothing less) and is well-built (clean, tested, maintainable)
+reviewer reads the diff once and returns two verdicts: does the work match
+its briefs (nothing more, nothing less), and is it well-built.
 
 ```
 Subagent (general-purpose):
@@ -192,9 +187,6 @@ Subagent (general-purpose):
 - `[DIFF_FILE]` — REQUIRED: the path the lead wrote the review package to
   (`scripts/review-package PLAN_FILE BASE HEAD` prints the unique path it
   wrote; the package never enters the lead's context)
-
-**Reviewer returns:** Spec Compliance verdict (✅/❌/⚠️), Strengths, Issues
-(Critical/Important/Minor), Work quality verdict
 
 Findings are forwarded to the worker verbatim; the re-review after fixes uses
 [re-review-prompt.md](re-review-prompt.md), which verdicts each finding rather
