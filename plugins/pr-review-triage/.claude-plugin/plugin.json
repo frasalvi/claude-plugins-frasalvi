@@ -1,8 +1,16 @@
 {
     "name": "pr-review-triage",
-    "description": "Triage pull requests for review, critically asessing what needs to be addressed or dismissed before human review.",
+    "version": "1.0.0",
+    "description": "Triage pull requests for review, critically assessing what needs to be addressed or dismissed before human review.",
     "author": {
         "name": "Francesco Salvi",
         "email": "salvi.fnc@gmail.com"
-    }
+    },
+    "license": "MIT",
+    "keywords": [
+        "pull request",
+        "review",
+        "triage",
+        "code review"
+    ]
 }
