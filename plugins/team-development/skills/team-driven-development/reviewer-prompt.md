@@ -190,11 +190,12 @@ Subagent (general-purpose):
   started, or the domain's start commit
 - `[HEAD_SHA]` — current commit
 - `[DIFF_FILE]` — REQUIRED: the path the lead wrote the review package to
-  (`scripts/review-package BASE HEAD` prints the unique path it wrote; the
-  package never enters the lead's context)
+  (`scripts/review-package PLAN_FILE BASE HEAD` prints the unique path it
+  wrote; the package never enters the lead's context)
 
 **Reviewer returns:** Spec Compliance verdict (✅/❌/⚠️), Strengths, Issues
 (Critical/Important/Minor), Work quality verdict
 
-Findings are forwarded to the worker verbatim; the re-review after fixes
-covers both verdicts.
+Findings are forwarded to the worker verbatim; the re-review after fixes uses
+[re-review-prompt.md](re-review-prompt.md), which verdicts each finding rather
+than reviewing the whole diff again.
