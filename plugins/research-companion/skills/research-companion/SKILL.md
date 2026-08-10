@@ -79,37 +79,19 @@ Deploy the **brainstormer** agent with:
 - The researcher's background and constraints
 - Explicit instruction to prioritize bold, novel, and surprising ideas.
 
-Present the results organized by type:
+**Do not relay the brainstormer's full output verbatim** — a raw, lengthy, diverse dump overwhelms rather than helps the researcher choose. Instead, the companion **curates and expands the raw ideas automatically**, in one step, before presenting anything:
 
-- Cross-field connections
-- Same-field novelty (variations, extensions, reframings)
-- Novel framings
-- Assumptions worth challenging
-- Big ideas
-- Wild cards and speculative leaps
-- Anything else that stands out
+1. **Curate** the brainstormer's raw ideas into **5-8 sharp candidate directions**, de-duplicating and **merging related or overlapping ideas into stronger combined directions** where sensible. Preserve diversity across the idea types the brainstormer worked in (cross-field connections, same-field novelty, novel framings, challenged assumptions, big ideas, wild cards) so the shortlist isn't all one flavor.
+2. **Expand** each of the 5-8 candidates directly (no agent) into a short elevator pitch:
+   - One sentence on the motivation and problem framing: why does this matter?
+   - One sentence on the novelty / key idea: what's the insight?
+   - A short paragraph on the proposed approach: what you'd concretely build, what data, what the key experiment would be.
 
-Ask the researcher to **star their top 2-3 ideas** (or add their own).
+**Keep each pitch to ~100-150 words** — a quick expansion to support an informed choice, not a full deepening (that comes in Phase 3). Tag each candidate with its idea type, and briefly flag any strong steer (e.g., which directions best fit the researcher's comparative advantage, which look crowded). Keep the brainstormer's full raw output saved/available in case the researcher wants to dig into the unfiltered list.
 
----
+**After presenting the expanded candidates, ask:** "Which of these do you want to take to full one-pagers? Any you want to drop, merge, modify, or add your own?"
 
-### Phase 2.5: EXPAND — Short Pitches Before Committing
-
-**Goal:** Give the researcher a better sense of each starred idea before committing to the full deepening process. This is a lightweight, fast step — no agents needed.
-
-**Why this phase exists:** The one-liners from Phase 2 are too vague for the researcher to make an informed selection. But running full idea-deepener agents (Phase 3) is expensive. This intermediate step lets the researcher see each idea as a short elevator pitch and drop weak ones before investing in full one-pagers and literature searches.
-
-**For each starred idea, write directly (no agent):**
-
-- One sentence on the motivation and problem framing: why does this matter?
-- One sentence on the novelty / key idea: what's the insight?
-- A short paragraph on the proposed approach: what you'd concretely build, what data, what the key experiment would be
-
-**Keep each pitch to ~100-150 words.** This is a quick expansion, not a full deepening.
-
-**After presenting all expanded pitches, ask:** "Now that you see these fleshed out a bit more, which ones do you want to take to full one-pagers? Any you want to drop, merge, or modify?"
-
-The researcher's selections from this step are what advance to Phase 3.
+The researcher's selections are what advance to Phase 3.
 
 ---
 
