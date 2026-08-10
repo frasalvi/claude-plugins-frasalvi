@@ -1,11 +1,17 @@
 #!/usr/bin/env bash
 # Resolve and ensure the working-tree directory team-driven-development uses
-# for its artifacts: task briefs, worker reports, review packages, the
+# for one plan's artifacts: task briefs, worker reports, review packages, the
 # progress ledger, and domain journals. Print the directory's absolute path.
 #
 # Adapted from superpowers:subagent-driven-development's sdd-workspace
 # (vendored: referencing another plugin's scripts requires a version-pinned
 # cache path that breaks on plugin updates).
+#
+# The workspace is scoped per plan (<repo-root>/.superpowers/team-dev/<plan-basename>/)
+# so a second plan — or a later session executing a different plan in the same
+# repo — cannot read or overwrite this plan's ledger, briefs, or journals. A
+# resumed session working the SAME plan resolves to the same directory and
+# finds its ledger, which is why the scope key is the plan, not the session.
 #
 # The workspace lives in the working tree (not under .git/) because Claude Code
 # treats .git/ as a protected path and denies agent writes there — which blocks
@@ -16,11 +22,22 @@
 # Single source of truth for the workspace location, so task-brief and
 # review-package cannot drift to different directories.
 #
-# Usage: team-workspace
+# Usage: team-workspace PLAN_FILE
 set -euo pipefail
 
+if [ $# -ne 1 ]; then
+  echo "usage: team-workspace PLAN_FILE" >&2
+  exit 2
+fi
+
+plan=$1
+slug=$(basename "$plan" .md)
+[ -n "$slug" ] && [ "$slug" != "." ] && [ "$slug" != ".." ] \
+  || { echo "cannot derive a workspace name from: $plan" >&2; exit 2; }
+
 root=$(git rev-parse --show-toplevel)
-dir="$root/.superpowers/team-dev"
+base="$root/.superpowers/team-dev"
+dir="$base/$slug"
 mkdir -p "$dir"
-printf '*\n' > "$dir/.gitignore"
+printf '*\n' > "$base/.gitignore"
 cd "$dir" && pwd
