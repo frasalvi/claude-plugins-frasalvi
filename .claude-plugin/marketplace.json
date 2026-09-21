@@ -22,6 +22,21 @@
             ]
         },
         {
+            "name": "fork-development",
+            "description": "Plan execution with forked implementer subagents that inherit the session's design context and prompt cache, gated by sparse fresh reviews. Companion to superpowers.",
+            "source": "./plugins/fork-development",
+            "category": "productivity",
+            "version": "0.1.0",
+            "license": "MIT",
+            "keywords": [
+                "fork",
+                "subagents",
+                "plan-execution",
+                "superpowers",
+                "orchestration"
+            ]
+        },
+        {
             "name": "research-companion",
             "description": "Strategic research thinking agents — idea evaluation, project triage, and structured brainstorming inspired by Carlini's research methodology",
             "source": "./plugins/research-companion",

@@ -1,0 +1,17 @@
+{
+  "name": "fork-development",
+  "version": "0.1.0",
+  "description": "Plan execution with forked implementer subagents that inherit the session's design context and prompt cache, gated by sparse fresh reviews. Companion to superpowers.",
+  "author": {
+    "name": "Francesco Salvi",
+    "url": "https://frasalvi.github.io/"
+  },
+  "license": "MIT",
+  "keywords": [
+    "fork",
+    "subagents",
+    "plan-execution",
+    "superpowers",
+    "orchestration"
+  ]
+}
