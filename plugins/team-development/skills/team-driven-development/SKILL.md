@@ -9,6 +9,8 @@ You lead. Persistent worker teammates build the plan's code, one worker per code
 
 **Your partner may not read messages mid-run.** Say things once and plainly, at the moments listed under Talking to Your Partner. Don't narrate between tool calls.
 
+**When you need your partner, the run stops.** Ask, then end your turn and wait for the answer, however long it takes. Until they answer: dispatch no new task, start no review or run, and move no task forward, even ones the question doesn't seem to touch. A worker already mid-task may finish it; record its report and send it nothing new. A question they find answered at the end of the branch, after the work it was about, is a question that was never asked.
+
 ## Kickoff
 
 1. **Offer to compact.** If the plan was written in this session and the context has not been compacted since, your first reply is: "Before I start: `/compact` now would cut the cost of the whole run. Compact, or go ahead?" End your turn. Proceed when they answer either way.
@@ -58,7 +60,7 @@ Spawn from [worker-prompt.md](worker-prompt.md).
 Workers message you when the brief is ambiguous, the code contradicts it, a decision reaches outside their territory, or they are about to deviate. This is the correctness core of the skill.
 
 - **Rule** when the answer follows from the plan, the spec, the code or ordinary engineering judgment within the plan's intent. Check the code or data before you rule.
-- **Ask your partner** when the plan or spec is wrong or silent on something with consequences beyond the task, when scope, external interfaces or dependencies change, or when results need their judgment.
+- **Ask your partner** when the plan or spec is wrong or silent on something with consequences beyond the task, when scope, external interfaces or dependencies change, or when results need their judgment. Then the run stops until they answer.
 - Answer completely in one message. Record each ruling in the ledger.
 
 ## When a Worker Reports
@@ -106,7 +108,7 @@ After round 3, or if the worker is gone, adjudicate each open finding: reviewer 
 Your partner may read only some of what you write. Tell them:
 
 - **at kickoff:** the domains, the workers and the runs you expect;
-- **when you ask something:** one question batch, then wait;
+- **when you need a decision:** one question batch as the last thing in your message, then stop (see the top of this skill);
 - **when a run starts:** what it is, its cost and ETA;
 - **when a run finishes:** the results, then stop;
 - **when a status question arrives:** one line from ground truth (git log, report files, the ledger);
@@ -155,6 +157,7 @@ Workers don't survive a session resume. On resume, spawn fresh workers from the 
 | "Let me check in, it's been quiet" | Check git log and the report file. A check-in costs the worker a turn. |
 | "The reviewer found Minor issues, let's fix them while we're here" | Minor goes to the end report. Fixing it in the loop causes regressions and extra rounds. |
 | "I'll ask for the go-ahead again to be safe" | Ask once and wait. |
+| "While they think about it, I'll get on with the tasks the question doesn't touch" | The run stops until they answer. They may not see the question until the branch is done, and then the answer comes too late to matter. |
 | "The plan is silent, but the sensible reading is obvious" | Silent plan plus consequences beyond the task means asking your partner. |
 | "Round 3 and still failing, the reviewer must be wrong" | Adjudicate each finding on its merits at the cap, not before. |
 | "The worker died, I'll finish its draft myself" | A replacement inspects the draft and keeps or discards it, and the domain keeps one owner for the review's findings. |
