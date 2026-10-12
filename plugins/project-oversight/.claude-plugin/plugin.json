@@ -1,7 +1,7 @@
 {
     "name": "project-oversight",
     "version": "2.0.0",
-    "description": "Roadmap oversight: cut a project into steps that each carry their own open questions, weighted Full, Light or Paired, scope later steps lazily, and revise the roadmap as work lands.",
+    "description": "Roadmap oversight: cut a project into steps that each deliver one thing, weighted Full, Light or Paired by how they will be worked, scope later steps lazily, and revise the roadmap as work lands.",
     "author": {
         "name": "Francesco Salvi",
         "email": "salvi.fnc@gmail.com"
