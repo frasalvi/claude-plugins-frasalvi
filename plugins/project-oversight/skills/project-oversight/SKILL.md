@@ -16,14 +16,16 @@ Each step gets one of two sizes, and the roadmap labels it:
 
 Two checks apply to every candidate step:
 
-- **Is it smaller than a plan-mode session?** Then it is not a step. It may just be the output of another step, a sub-part of one, or a quick fix. Fold it into the neighbouring step, or do it in the session where it comes up.
+- **Is it smaller than a plan-mode session?** Then it is not a step. It may be a quick fix, or something another step's work already produces. Fold it into the neighbouring step, or do it in the session where it comes up. Size is the only test. Two pieces of work that are related, run back to back, or feed one another are still separate steps when each needs its own plan.
 - **Is it bigger than one cycle?** Its brainstorm would end in more than one spec, or its plan would cover independent deliverables. Split it at the seam between those deliverables.
 
-Every split needs a reason: a separate decision, risk or deliverable that the other steps don't cover. When you propose a breakdown, say what you folded together and why, and label each step **Cycle** or **Plan mode**.
+Every step needs its own reason to exist: a separate decision, risk or deliverable that the other steps don't cover. Label each step **Cycle** or **Plan mode**.
+
+When you propose a breakdown, include a **Sizing calls** list. It names every fold and split that could reasonably go the other way, each with a one-line reason. The user decides those calls.
 
 ## Scope lazily
 
-Only the next step needs detail. A later step is one line in the Work column, and its sub-parts, manuscripts and release packaging are decided when it starts. Don't add work the user hasn't asked for.
+The roadmap runs all the way to the brief's goal. Every stage the brief needs, through the final analysis or delivery, gets a step. Only the next step needs detail. A later step is one line in the Work column, and its sub-parts are decided when it starts. Extras that neither the brief nor the user asked for, such as a manuscript or a release package, stay off.
 
 ## Actions
 
