@@ -8,10 +8,10 @@
     "plugins": [
         {
             "name": "team-development",
-            "description": "Plan execution with persistent agent-team workers — domain-scoped teammates, ask-don't-guess escalation, and right-sized reviews. Companion to superpowers.",
+            "description": "Plan execution with persistent worker teammates per code domain: workers ask instead of guessing, runs and experiments stay with the lead and the user, and one Opus whole-branch review gates paid runs and the merge. Companion to superpowers.",
             "source": "./plugins/team-development",
             "category": "productivity",
-            "version": "0.2.1",
+            "version": "1.0.0",
             "license": "MIT",
             "keywords": [
                 "agent-teams",
