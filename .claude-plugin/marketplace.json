@@ -67,10 +67,10 @@
         },
         {
             "name": "pr-review-triage",
-            "description": "Triage pull requests for review, critically assessing what needs to be addressed or dismissed before human review.",
+            "description": "Triage PR review comments inline: verify each bot claim against the code and how the project actually runs, fix what's real, dismiss the rest with evidence, then merge and clean up.",
             "source": "./plugins/pr-review-triage",
             "category": "productivity",
-            "version": "1.0.0",
+            "version": "2.0.0",
             "license": "MIT",
             "keywords": [
                 "pull request",

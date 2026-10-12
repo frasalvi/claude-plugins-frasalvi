@@ -1,7 +1,7 @@
 {
     "name": "pr-review-triage",
-    "version": "1.0.0",
-    "description": "Triage pull requests for review, critically assessing what needs to be addressed or dismissed before human review.",
+    "version": "2.0.0",
+    "description": "Triage PR review comments inline: verify each bot claim against the code and how the project actually runs, fix what's real, dismiss the rest with evidence, then merge and clean up.",
     "author": {
         "name": "Francesco Salvi",
         "email": "salvi.fnc@gmail.com"
