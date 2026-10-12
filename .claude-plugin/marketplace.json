@@ -53,10 +53,10 @@
         },
         {
             "name": "project-oversight",
-            "description": "A plugin for overseeing and managing projects, breaking them down into manageable milestones and tasks.",
+            "description": "Roadmap oversight: cut a project into steps sized to one superpowers cycle or one plan-mode session, scope later steps lazily, and revise the roadmap as work lands.",
             "source": "./plugins/project-oversight",
             "category": "productivity",
-            "version": "1.0.0",
+            "version": "2.0.0",
             "license": "MIT",
             "keywords": [
                 "project management",
