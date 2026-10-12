@@ -53,7 +53,7 @@
         },
         {
             "name": "project-oversight",
-            "description": "Roadmap oversight: cut a project into steps sized to one superpowers cycle or one plan-mode session, scope later steps lazily, and revise the roadmap as work lands.",
+            "description": "Roadmap oversight: cut a project into steps that each carry their own open questions, weighted Full, Light or Paired, scope later steps lazily, and revise the roadmap as work lands.",
             "source": "./plugins/project-oversight",
             "category": "productivity",
             "version": "2.0.0",
