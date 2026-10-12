@@ -1,7 +1,7 @@
 {
   "name": "team-development",
-  "version": "0.2.1",
-  "description": "Plan execution with persistent agent-team workers — domain-scoped teammates, ask-don't-guess escalation, and right-sized reviews. Companion to superpowers.",
+  "version": "1.0.0",
+  "description": "Plan execution with persistent worker teammates per code domain: workers ask instead of guessing, runs and experiments stay with the lead and the user, and one Opus whole-branch review gates paid runs and the merge. Companion to superpowers.",
   "author": {
     "name": "Francesco Salvi",
     "url": "https://frasalvi.github.io/"
