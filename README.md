@@ -9,3 +9,4 @@ This repository contains the following plugins:
 - **research-companion**: A plugin for brainstorming, evaluating, and deciding on research directions.
 - **project-oversight**: A plugin for building and revising project roadmaps, with steps weighted Full, Light or Paired by how they will be worked.
 - **pr-review-triage**: A plugin for triaging PR review comments inline (verify, fix or dismiss with evidence) and closing out the merge.
+- **overleaf-editor**: A plugin for editing an Overleaf-synced LaTeX document as a scientific editor: AI TODOs and new drafts are pushed directly, edits to existing prose come back as diffs.

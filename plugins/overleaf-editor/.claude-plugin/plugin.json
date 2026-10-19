@@ -1,0 +1,17 @@
+{
+    "name": "overleaf-editor",
+    "version": "1.0.0",
+    "description": "Edit an Overleaf-synced LaTeX document as a scientific editor: pull first, handle AI TODOs, push new drafts, propose edits to existing prose as diffs, and keep the writing free of AI tells.",
+    "author": {
+        "name": "Francesco Salvi",
+        "email": "salvi.fnc@gmail.com"
+    },
+    "license": "MIT",
+    "keywords": [
+        "overleaf",
+        "latex",
+        "writing",
+        "editing",
+        "scientific writing"
+    ]
+}
