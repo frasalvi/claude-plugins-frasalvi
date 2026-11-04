@@ -55,7 +55,7 @@ for (const name of ['read_doc', 'update_doc_suggest', 'update_doc_comment', 'upd
     assert.strictEqual(decide(input, G, DIR).decision, 'allow');
     const denied = decide(input, [], DIR);
     assert.strictEqual(denied.decision, 'deny');
-    assert.match(denied.reason, /\/gdocs/);
+    assert.match(denied.reason, /\/gdocs-editor:gdocs <link>.*gdocs: <link>/);
   });
 }
 
