@@ -1,0 +1,16 @@
+{
+    "name": "gdocs-editor",
+    "version": "1.0.0",
+    "description": "Edit Google Docs granted per session through the claude.ai Google Docs connector, as a scientific editor working only in suggestions and comments.",
+    "author": {
+        "name": "Francesco Salvi",
+        "email": "salvi.fnc@gmail.com"
+    },
+    "license": "MIT",
+    "keywords": [
+        "google docs",
+        "writing",
+        "editing",
+        "scientific writing"
+    ]
+}
