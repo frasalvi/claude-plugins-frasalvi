@@ -88,8 +88,8 @@ Every call to a Google Docs connector tool passes these checks:
 
 ### Lifetime
 
-- The grant lasts until the session ends. A `SessionEnd` hook deletes the session's grant file. A resumed session must re-run `/gdocs`. *(Designer's call.)*
-- Stale grant files left behind by crashed sessions are pruned when they are older than a few days, for example at the next `SessionStart`. *(Designer's call; the exact age is for the builder.)*
+- The grant belongs to the session and survives resuming it (lead's decision). Claude Code reuses the session ID on resume, so the grant file is simply kept. A forked session (`--fork-session`) or a `/clear` starts a new session ID, which has no grant.
+- Grant files are not deleted when a session ends, because the session may be resumed. Ones unused for a long time are pruned, for example at `SessionStart`. *(The age is the builder's call; weeks rather than days.)*
 - Subagents inside a granted session share its grant, because the gatekeeper keys on `session_id`. If the live check shows that subagents get a different `session_id`, the builder should key on the parent session.
 
 ### Editor skill: `gdocs-editor`
@@ -117,6 +117,7 @@ The lead connects the claude.ai Google Docs connector via `/mcp` once. Then chec
 6. The `UserPromptSubmit` hook sees the raw `/gdocs ...` text when the lead types it as a slash command.
 7. Subagent tool calls carry the parent's `session_id`.
 8. Whether claude.ai chats have the connector on by default. If so, tell the lead to switch it off there.
+9. A resumed session (`claude --resume`) carries the same `session_id` as before.
 
 If check 2 or 3 fails in a way that makes suggestion-only editing impossible, stop and go back to the lead. Don't fall back to `EDIT` mode.
 
@@ -131,7 +132,7 @@ These are designer's calls made after a builder review.
 - **Document IDs.** The grant stores bare IDs: the hook strips links down to the ID. The gatekeeper also normalizes the tool's `documentId` the same way (accepting a full link), then requires an exact match. A call that is missing a field it needs, such as an `update_doc` without `requests`, is denied.
 - **Runtime.** The hooks are written in Node. `node` is on the Git Bash PATH on this machine; `jq` is not. The plugin README states Node as a requirement.
 - **Fail closed even if the timeout setting is ignored.** If plugin hooks don't honor `"onFailure": "block"`, write the gatekeeper so that any error inside it produces an explicit deny for Docs/Drive calls.
-- **Resume.** A `SessionStart` with `source: resume` deletes any grant file for that session. A resumed session always re-runs `/gdocs`, whether or not `SessionEnd` fired.
+- **Resume.** Live check 9: confirm that a resumed session keeps its `session_id`, so the grant carries over. If it doesn't, link the new session ID to the old grant at `SessionStart` with `source: resume`, using whatever resume information the hook input provides.
 - **Grant-file protection covers writes only.** Read, Grep and Glob on the grant directory stay allowed: document IDs alone carry no content.
 
 ## Left to the builder
