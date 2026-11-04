@@ -1,0 +1,10 @@
+{
+  "tool_name": "mcp__claude_ai_Google_Docs__update_doc",
+  "tool_input": {
+    "documentId": "1qFpuCbnDk5ydaFHVohmDGcD9oAIuR_Jk1GaqnFghaFg",
+    "requests": [
+      { "addCommentReply": { "commentId": "doco.5OYEzRQaJpcP5Xq4tCjj5A", "post": { "content": "Test reply from Claude; thread should stay open.", "commentAction": "NO_COMMENT_ACTION_CHANGE" } } }
+    ],
+    "writeControl": { "writeMode": "SUGGEST" }
+  }
+}

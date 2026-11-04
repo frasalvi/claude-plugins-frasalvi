@@ -1,0 +1,13 @@
+{
+  "tool_name": "mcp__claude_ai_Google_Docs__update_doc",
+  "tool_input": {
+    "documentId": "1qFpuCbnDk5ydaFHVohmDGcD9oAIuR_Jk1GaqnFghaFg",
+    "requests": [
+      { "insertText": { "location": { "index": 19, "tabId": "t.0" }, "text": " (suggested by Claude)" } }
+    ],
+    "writeControl": {
+      "writeMode": "SUGGEST",
+      "requiredRevisionId": "AHj4eMQd0zePeYPwc2mpypLagNSyeFzYfgcpJbeqaPNnMYyoZpJeMuC70MOe48iU-nz8Ls9C3d7VlpJ7PVyJmNhd7lMJrZrhFs_OjzEyNPc"
+    }
+  }
+}
