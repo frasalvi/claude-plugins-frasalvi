@@ -1,6 +1,6 @@
 ---
 name: gdocs-editor
-description: Edit a Google Doc as a professional scientific editor, working only through suggestions and comments via the claude.ai Google Docs connector. Use when the user shares a Google Docs link, asks to address the AI TODOs in the doc, asks to draft, edit or polish something in the Google Doc, or types `/gdocs`. Covers suggestions vs comments, the bracketed model-name prefix on every comment, concurrent edits, the house writing style, and how to mark model-generated citations.
+description: Edit a Google Doc as a professional scientific editor, working only through suggestions and comments via the claude.ai Google Docs connector. Use when the user shares a Google Docs link, asks to address the AI TODOs in the doc, asks to draft, edit or polish something in the Google Doc, or types `/gdocs-editor:gdocs` or `gdocs:`. Covers suggestions vs comments, the bracketed model-name prefix on every comment, concurrent edits, the house writing style, and how to mark model-generated citations.
 ---
 
 # Google Docs editor
@@ -15,7 +15,7 @@ Every comment and every reply you post starts with your model name in brackets, 
 
 ## Access
 
-Only documents the lead granted with `/gdocs <link>` (or a message starting `gdocs:`) are reachable. A hook enforces this. If a call is denied, the doc is not granted: ask the lead to run `/gdocs <link>`, and never try to work around the gatekeeper (another tool, another path, Drive, a different call shape).
+Only documents the lead granted with `/gdocs-editor:gdocs <link>` (or a message starting `gdocs: <link>`) are reachable. A hook enforces this. If a call is denied, the doc is not granted: ask the lead to run `/gdocs-editor:gdocs <link>` or send `gdocs: <link>`, and never try to work around the gatekeeper (another tool, another path, Drive, a different call shape).
 
 Use only the Google Docs tools `read_doc` and `update_doc`. Never use Google Drive tools.
 

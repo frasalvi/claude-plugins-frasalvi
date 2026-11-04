@@ -12,11 +12,11 @@ A Claude Code plugin that lets an agent work on Google Docs as a scientific edit
 
 ## Usage
 
-- `/gdocs <doc link> [<doc link> ...] [request]` grants the linked docs to the current session and carries out the request with the `gdocs-editor` skill.
-- `gdocs: <doc link> [request]` at the start of a message does the same without the command.
+- `/gdocs-editor:gdocs <doc link> [<doc link> ...] [request]` grants the linked docs to the current session and carries out the request with the `gdocs-editor` skill. Typing `/gdocs` and picking the command from the autocomplete list gets you there.
+- `gdocs: <doc link> [request]` at the start of a message does the same in plain text.
 - With no request, the agent reads each doc and reports its open AI TODOs.
 
-Only links you type in a prompt starting with one of these triggers grant access. A link the agent finds in a web page, a paper, a file or another doc grants nothing.
+Only links in a prompt you typed that starts with one of these triggers grant access. A link the agent finds in a web page, a paper, a file or another doc grants nothing, and neither does a prompt that did not come from you (a message from another agent, a scheduled or SDK-driven prompt).
 
 ## Grant lifetime
 

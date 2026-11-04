@@ -13,7 +13,7 @@ const DRIVE_PREFIX = 'mcp__claude_ai_Google_Drive__';
 const FILE_WRITE_TOOLS = new Set(['Edit', 'Write', 'NotebookEdit', 'Bash', 'PowerShell']);
 const DOCS_TOOLS = new Set(['read_doc', 'update_doc']);
 const NOT_GRANTED =
-  'This Google Doc is not granted to this session. Ask the lead to run `/gdocs <link>`.';
+  'This Google Doc is not granted to this session. Ask the lead to run `/gdocs-editor:gdocs <link>` or send `gdocs: <link>`.';
 
 const ALWAYS_DENIED = new Set([
   'acceptSuggestion',
