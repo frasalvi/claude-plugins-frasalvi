@@ -78,6 +78,20 @@ test('grant.js ignores a prompt that is not a trigger', () => {
   assert.deepStrictEqual(fs.readdirSync(dir), []);
 });
 
+test('grant.js grants only for source user or absent', () => {
+  for (const source of ['system', 'sdk', 'loop_wakeup', 'schedule_wakeup', 'poll_event', 'weird', null]) {
+    const dir = tmpDir();
+    const r = run('grant.js', JSON.stringify({ session_id: 's1', source, prompt: `/gdocs ${LINK}` }), dir);
+    assert.strictEqual(r.status, 0, String(source));
+    assert.strictEqual(r.stdout, '', String(source));
+    assert.deepStrictEqual(fs.readdirSync(dir), [], String(source));
+  }
+  const dir = tmpDir();
+  const r = run('grant.js', JSON.stringify({ session_id: 's1', source: 'user', prompt: `/gdocs ${LINK}` }), dir);
+  assert.ok(r.stdout.includes(A));
+  assert.deepStrictEqual(fs.readdirSync(dir), ['s1.json']);
+});
+
 test('grant.js with a bare /gdocs says no link was recognized', () => {
   const dir = tmpDir();
   const r = run('grant.js', JSON.stringify({ session_id: 's1', prompt: '/gdocs' }), dir);

@@ -31,13 +31,6 @@ const EDIT_OPS = new Set([
   'updateTextStyle',
   'updateParagraphStyle',
   'createParagraphBullets',
-  'deleteParagraphBullets',
-  'insertTable',
-  'insertTableRow',
-  'insertTableColumn',
-  'deleteTableRow',
-  'deleteTableColumn',
-  'insertPageBreak',
 ]);
 
 const GRANT_DIR_FORMS = [

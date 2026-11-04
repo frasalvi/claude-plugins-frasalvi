@@ -30,6 +30,7 @@ If the lead only gives a link, report the open AI TODOs and what the doc contain
 ## What the read gives you
 
 - Text comes with pending suggestions inline, so indices count suggested but unaccepted text. Positions are valid only for the latest read.
+- Pending suggestions are marked on text runs (`suggestedInsertionIds`, `suggestedDeletionIds`, `suggestedTextStyleChanges`) and on paragraphs (`suggestedParagraphStyleChanges`, `suggestedBulletChanges`). Text in a run with `suggestedDeletionIds` is pending deletion: ignore it when reading for meaning, but count it for positions.
 - Indices are UTF-16 code units, from `body.content` `startIndex` and `endIndex`.
 - Every location carries a `tabId` (for example `t.0`, from `tabs[].tabProperties.tabId`). Always include it.
 - `revisionId` is the document's current revision. `commentAnchors[anchorId].ranges` in each tab gives where each comment is anchored.
@@ -65,8 +66,12 @@ Send suggestions and their comments in one `update_doc` call:
 
 - Every call that edits uses `writeMode: "SUGGEST"` exactly. Comments alone may omit `writeControl`.
 - A reply is `{"addCommentReply": {"commentId": "...", "post": {"content": "[Opus 5.5] ...", "commentAction": "NO_COMMENT_ACTION_CHANGE"}}}`. `commentAction` goes inside `post`. Never resolve or reopen a thread.
-- A comment is `{"insertComment": {"content": "...", "range": {"startIndex": N, "endIndex": M, "tabId": "t.0"}}}`.
+- A comment is `{"insertComment": {"content": "[Opus 5.5] ...", "range": {"startIndex": N, "endIndex": M, "tabId": "t.0"}}}`.
 - Each request holds exactly one operation.
+- The edit operations that work as suggestions, and so the only ones you may use, are `insertText`, `deleteContentRange`, `replaceAllText`, `updateTextStyle`, `updateParagraphStyle` and `createParagraphBullets`. Tables, page breaks and bullet removal are denied.
+- To replace text, send `deleteContentRange` on [s, e) and then `insertText` at index s, in that order, in the same call: `[{"deleteContentRange": {"range": {"startIndex": 97, "endIndex": 109, "tabId": "t.0"}}}, {"insertText": {"location": {"index": 97, "tabId": "t.0"}, "text": "wanting for a long time"}}]`. The new text appears at s with the struck old text right after it, and the pair is one suggestion.
+- A suggested deletion does not remove characters, so later indices do not shrink. A suggested insertion adds characters. Work from the end of the document backwards within one call and every earlier position stays valid.
+- `replaceAllText` hits every match in the doc (all tabs unless `tabsCriteria` limits it). Use it only for a deliberate doc-wide replacement; otherwise replace by index.
 - In a mixed call a later request's range is resolved after the earlier requests apply, so order matters. Apply edits from the end of the document backwards, and put each comment after the edits it refers to, or anchor comments on text that the earlier edits do not move.
 - Send `requiredRevisionId` from the latest read with every edit call. A successful write returns the new revision in `writeControl.requiredRevisionId`; you may use it for the next call.
 - If a call fails with "does not match the latest revision", someone edited meanwhile: re-read, recompute every position, and retry. Never place a suggestion against stale positions.
