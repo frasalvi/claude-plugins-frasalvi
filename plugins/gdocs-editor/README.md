@@ -28,7 +28,7 @@ A grant belongs to one session and is kept when you resume it. Grant files live 
 - Any Docs call for a doc not granted to the session, and any Docs tool other than `read_doc` and `update_doc`.
 - Edits outside suggestion mode: every edit request needs `writeControl.writeMode` exactly `SUGGEST`.
 - Accepting, rejecting or deleting suggestions, deleting comments or replies, editing comment posts, and resolving or reopening comment threads.
-- Any request type outside the known edit and comment operations.
+- Any request type outside the operations verified to land as suggestions or comments: `insertText`, `deleteContentRange`, `replaceAllText`, `updateTextStyle`, `updateParagraphStyle`, `createParagraphBullets`, `insertComment` and `addCommentReply`. Tables, page breaks and bullet removal are denied.
 - Writes to the grant directory through `Edit`, `Write`, `NotebookEdit`, `Bash` or `PowerShell`.
 
 If the gatekeeper itself fails on a Docs call, the call is denied.

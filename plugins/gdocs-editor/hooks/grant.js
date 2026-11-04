@@ -17,6 +17,7 @@ const { parseTrigger, extractDocIds, addGrants } = require('./lib/grants');
  */
 function main() {
   const input = JSON.parse(fs.readFileSync(0, 'utf8'));
+  if (input.source !== undefined && input.source !== 'user') return;
   const rest = parseTrigger(input.prompt);
   if (rest === null) return;
   const ids = extractDocIds(rest);

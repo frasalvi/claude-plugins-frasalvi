@@ -107,6 +107,19 @@ test('addCommentReply rejects any commentAction other than NO_COMMENT_ACTION_CHA
   assert.strictEqual(decide(reply({ commentId: 'c', post: { content: 'x' } }), G, DIR).decision, 'allow');
 });
 
+test('edit ops not verified to land as suggestions are denied', () => {
+  for (const op of ['insertTable', 'insertPageBreak', 'deleteParagraphBullets', 'insertTableRow', 'insertTableColumn', 'deleteTableRow', 'deleteTableColumn']) {
+    assert.strictEqual(decide(update([{ [op]: {} }], SUGGEST), G, DIR).decision, 'deny', op);
+  }
+});
+
+test('verified edit ops are allowed in SUGGEST only', () => {
+  for (const op of ['insertText', 'deleteContentRange', 'replaceAllText', 'updateTextStyle', 'updateParagraphStyle', 'createParagraphBullets']) {
+    assert.strictEqual(decide(update([{ [op]: {} }], SUGGEST), G, DIR).decision, 'allow', op);
+    assert.strictEqual(decide(update([{ [op]: {} }]), G, DIR).decision, 'deny', op);
+  }
+});
+
 test('unknown ops, empty requests and multi-key requests are denied', () => {
   assert.strictEqual(decide(update([{ createNamedRange: {} }], SUGGEST), G, DIR).decision, 'deny');
   assert.strictEqual(decide(update([], SUGGEST), G, DIR).decision, 'deny');
