@@ -78,6 +78,20 @@
                 "editing",
                 "scientific writing"
             ]
+        },
+        {
+            "name": "gdocs-editor",
+            "description": "Edit Google Docs granted per session through the claude.ai Google Docs connector, as a scientific editor working only in suggestions and comments.",
+            "source": "./plugins/gdocs-editor",
+            "category": "productivity",
+            "version": "1.0.0",
+            "license": "MIT",
+            "keywords": [
+                "google docs",
+                "writing",
+                "editing",
+                "scientific writing"
+            ]
         }
     ]
 }

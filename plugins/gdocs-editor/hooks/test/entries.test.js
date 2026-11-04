@@ -1,0 +1,166 @@
+/**
+ * Review tier: plumbing
+ *
+ * Tests for the gdocs-editor hook entry points and hooks.json wiring.
+ */
+'use strict';
+
+const test = require('node:test');
+const assert = require('node:assert');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const { spawnSync } = require('node:child_process');
+
+const HOOKS = path.join(__dirname, '..');
+const A = '1qFpuCbnDk5ydaFHVohmDGcD9oAIuR_Jk1GaqnFghaFg';
+const LINK = `https://docs.google.com/document/d/${A}/edit?tab=t.0`;
+
+/**
+ * Create a fresh temp grant directory.
+ *
+ * Returns:
+ *   The directory path.
+ */
+function tmpDir() {
+  return fs.mkdtempSync(path.join(os.tmpdir(), 'gdocs-entries-'));
+}
+
+/**
+ * Run a hook script with stdin and a grant dir.
+ *
+ * Args:
+ *   script: Script file name under hooks/.
+ *   stdin: Raw stdin text.
+ *   dir: Value for GDOCS_GRANT_DIR.
+ *
+ * Returns:
+ *   The spawnSync result.
+ */
+function run(script, stdin, dir) {
+  return spawnSync(process.execPath, [path.join(HOOKS, script)], {
+    input: stdin,
+    encoding: 'utf8',
+    env: { ...process.env, GDOCS_GRANT_DIR: dir },
+  });
+}
+
+/**
+ * Load a Task 1 fixture as a hook input with a session id.
+ *
+ * Args:
+ *   name: Fixture name without extension.
+ *   sessionId: Session id to add.
+ *
+ * Returns:
+ *   JSON string for stdin.
+ */
+function fixtureInput(name, sessionId) {
+  const f = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', `${name}.json`), 'utf8'));
+  return JSON.stringify({ ...f, session_id: sessionId });
+}
+
+test('grant.js records granted ids and reports them', () => {
+  const dir = tmpDir();
+  const r = run('grant.js', JSON.stringify({ session_id: 's1', prompt: `/gdocs ${LINK} please fix the intro` }), dir);
+  assert.strictEqual(r.status, 0);
+  assert.deepStrictEqual(JSON.parse(fs.readFileSync(path.join(dir, 's1.json'), 'utf8')), { docs: [A] });
+  const out = JSON.parse(r.stdout).hookSpecificOutput;
+  assert.strictEqual(out.hookEventName, 'UserPromptSubmit');
+  assert.ok(out.additionalContext.includes(A));
+});
+
+test('grant.js ignores a prompt that is not a trigger', () => {
+  const dir = tmpDir();
+  const r = run('grant.js', JSON.stringify({ session_id: 's1', prompt: `look at ${LINK}` }), dir);
+  assert.strictEqual(r.status, 0);
+  assert.strictEqual(r.stdout, '');
+  assert.deepStrictEqual(fs.readdirSync(dir), []);
+});
+
+test('grant.js with a bare /gdocs says no link was recognized', () => {
+  const dir = tmpDir();
+  const r = run('grant.js', JSON.stringify({ session_id: 's1', prompt: '/gdocs' }), dir);
+  assert.strictEqual(r.status, 0);
+  assert.deepStrictEqual(fs.readdirSync(dir), []);
+  assert.match(JSON.parse(r.stdout).hookSpecificOutput.additionalContext, /no .*link.* recognized/i);
+});
+
+test('grant.js exits 0 silently on bad stdin', () => {
+  const r = run('grant.js', 'not json', tmpDir());
+  assert.strictEqual(r.status, 0);
+  assert.strictEqual(r.stdout, '');
+});
+
+test('gate.js allows a granted doc silently and denies an ungranted session', () => {
+  const dir = tmpDir();
+  run('grant.js', JSON.stringify({ session_id: 's1', prompt: `/gdocs ${LINK}` }), dir);
+  const ok = run('gate.js', fixtureInput('read_doc', 's1'), dir);
+  assert.strictEqual(ok.status, 0);
+  assert.strictEqual(ok.stdout, '');
+  const no = run('gate.js', fixtureInput('read_doc', 's2'), dir);
+  assert.strictEqual(no.status, 0);
+  const out = JSON.parse(no.stdout).hookSpecificOutput;
+  assert.strictEqual(out.hookEventName, 'PreToolUse');
+  assert.strictEqual(out.permissionDecision, 'deny');
+  assert.match(out.permissionDecisionReason, /\/gdocs/);
+});
+
+test('gate.js denies a hostile session id on a Docs call', () => {
+  const r = run('gate.js', fixtureInput('read_doc', '../x'), tmpDir());
+  assert.strictEqual(JSON.parse(r.stdout).hookSpecificOutput.permissionDecision, 'deny');
+});
+
+test('gate.js is silent for unrelated tools', () => {
+  const r = run('gate.js', JSON.stringify({ session_id: 's1', tool_name: 'Bash', tool_input: { command: 'ls' } }), tmpDir());
+  assert.strictEqual(r.status, 0);
+  assert.strictEqual(r.stdout, '');
+});
+
+test('gate.js denies malformed stdin only when it mentions Google', () => {
+  const dir = tmpDir();
+  const bad = run('gate.js', 'not json mcp__claude_ai_Google_Docs__read_doc', dir);
+  assert.strictEqual(bad.status, 0);
+  const out = JSON.parse(bad.stdout).hookSpecificOutput;
+  assert.strictEqual(out.permissionDecision, 'deny');
+  assert.match(out.permissionDecisionReason, /^gdocs gatekeeper error: /);
+
+  const other = run('gate.js', 'not json', dir);
+  assert.strictEqual(other.status, 0);
+  assert.strictEqual(other.stdout, '');
+
+  const empty = run('gate.js', '', dir);
+  assert.strictEqual(empty.status, 0);
+  assert.strictEqual(empty.stdout, '');
+});
+
+test('session-start.js prunes old grants and never fails', () => {
+  const dir = tmpDir();
+  const file = path.join(dir, 'old.json');
+  fs.writeFileSync(file, '{"docs":[]}');
+  const old = new Date(Date.now() - 40 * 86400000);
+  fs.utimesSync(file, old, old);
+  const r = run('session-start.js', '{}', dir);
+  assert.strictEqual(r.status, 0);
+  assert.strictEqual(r.stdout, '');
+  assert.strictEqual(fs.existsSync(file), false);
+});
+
+test('hooks.json is valid and points at existing scripts', () => {
+  const cfg = JSON.parse(fs.readFileSync(path.join(HOOKS, 'hooks.json'), 'utf8'));
+  const cmds = [];
+  for (const groups of Object.values(cfg.hooks)) {
+    for (const g of groups) for (const h of g.hooks) cmds.push(h);
+  }
+  assert.strictEqual(cmds.length, 3);
+  for (const h of cmds) {
+    const m = /^node "\$\{CLAUDE_PLUGIN_ROOT\}\/hooks\/([\w-]+\.js)"$/.exec(h.command);
+    assert.ok(m, h.command);
+    assert.ok(fs.existsSync(path.join(HOOKS, m[1])), m[1]);
+  }
+  const pre = cfg.hooks.PreToolUse[0];
+  assert.strictEqual(pre.matcher, 'mcp__.*|^Edit$|^Write$|^NotebookEdit$|^Bash$|^PowerShell$');
+  assert.strictEqual(pre.hooks[0].timeout, 10);
+  assert.strictEqual(pre.hooks[0].onFailure, 'block');
+  assert.ok(cfg.hooks.UserPromptSubmit && cfg.hooks.SessionStart);
+});
