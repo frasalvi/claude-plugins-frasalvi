@@ -1,7 +1,7 @@
 /**
  * Review tier: plumbing
  *
- * PreToolUse hook: applies the gdocs policy. Prints output only to deny;
+ * PreToolUse hook: applies the gdrive policy. Prints output only to deny;
  * allow and pass stay silent so unrelated permission flows are untouched.
  * Always exits 0.
  */
@@ -51,7 +51,7 @@ function main() {
     else if (result.decision === 'allow') touchGrant(input.session_id);
   } catch (err) {
     if (/Google_Docs|Google_Drive|Google Docs/.test(raw)) {
-      deny(`gdocs gatekeeper error: ${err.message}`);
+      deny(`gdrive gatekeeper error: ${err.message}`);
     }
   }
 }

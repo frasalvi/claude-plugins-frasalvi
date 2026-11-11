@@ -10,4 +10,4 @@ This repository contains the following plugins:
 - **project-oversight**: A plugin for building and revising project roadmaps, with steps weighted Full, Light or Paired by how they will be worked.
 - **pr-review-triage**: A plugin for triaging PR review comments inline (verify, fix or dismiss with evidence) and closing out the merge.
 - **overleaf-editor**: A plugin for editing an Overleaf-synced LaTeX document as a scientific editor: AI TODOs and new drafts are pushed directly, edits to existing prose come back as diffs.
-- **gdocs-editor**: A plugin for editing Google Docs through the claude.ai Google Docs connector as a scientific editor: access is granted per session with `/gdocs-editor:gdocs <link>` or `gdocs: <link>`, and hooks restrict the agent to suggestions and comments.
+- **gdrive-editor**: A plugin for working on Google Docs and Sheets through the claude.ai connectors: access is granted per session with `/gdrive-editor:grant <link>` or `gdrive: <link>`, and hooks keep the agent to suggestions and comments in Docs and to granted spreadsheets in Sheets.

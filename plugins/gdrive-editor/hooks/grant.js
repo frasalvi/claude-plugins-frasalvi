@@ -2,7 +2,7 @@
  * Review tier: plumbing
  *
  * UserPromptSubmit hook: records Google Docs ids the user grants with a
- * `/gdocs <link>` prompt. Never blocks; exits 0 silently on any error.
+ * grant prompt. Never blocks; exits 0 silently on any error.
  */
 'use strict';
 
@@ -24,7 +24,7 @@ function main() {
   const granted = ids.length ? addGrants(input.session_id, ids) : [];
   const context = granted.length
     ? `Google Docs granted to this session: ${ids.join(', ')}`
-    : 'No Google Doc link was recognized in the /gdocs prompt; no document was granted.';
+    : 'No Google Docs or Sheets link was recognized in the grant prompt; nothing was granted.';
   process.stdout.write(
     JSON.stringify({
       hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext: context },

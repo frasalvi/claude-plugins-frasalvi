@@ -1,7 +1,7 @@
 /**
  * Review tier: plumbing
  *
- * Tests for the gdocs grant store and link parsing.
+ * Tests for the gdrive grant store and link parsing.
  */
 'use strict';
 
@@ -19,22 +19,23 @@ const C = 'C'.repeat(28);
 const REAL = '1qFpuCbnDk5ydaFHVohmDGcD9oAIuR_Jk1GaqnFghaFg';
 
 /**
- * Point GDOCS_GRANT_DIR at a fresh temp dir.
+ * Point GDRIVE_GRANT_DIR at a fresh temp dir.
  *
  * Returns:
  *   The temp dir path.
  */
 function freshDir() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gdocs-grants-'));
-  process.env.GDOCS_GRANT_DIR = dir;
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gdrive-grants-'));
+  process.env.GDRIVE_GRANT_DIR = dir;
   return dir;
 }
 
 test('grantDir reads the env var at call time, with a home default', () => {
   const dir = freshDir();
   assert.strictEqual(grants.grantDir(), dir);
-  delete process.env.GDOCS_GRANT_DIR;
-  assert.strictEqual(grants.grantDir(), path.join(os.homedir(), '.claude', 'gdocs-grants'));
+  delete process.env.GDRIVE_GRANT_DIR;
+  assert.strictEqual(grants.grantDir(), path.join(os.homedir(), '.claude', 'gdrive-grants'));
+  assert.ok(grants.grantDir().endsWith(path.join('.claude', 'gdrive-grants')));
 });
 
 test('isSafeSessionId accepts only simple ids', () => {
@@ -45,12 +46,13 @@ test('isSafeSessionId accepts only simple ids', () => {
 });
 
 test('parseTrigger', () => {
-  assert.strictEqual(grants.parseTrigger('/gdocs https://x'), 'https://x');
-  assert.strictEqual(grants.parseTrigger('  gdocs: a b'), 'a b');
-  assert.strictEqual(grants.parseTrigger('/gdocs-editor:gdocs x'), 'x');
-  assert.strictEqual(grants.parseTrigger('/gdocs'), '');
-  assert.strictEqual(grants.parseTrigger('please /gdocs x'), null);
-  assert.strictEqual(grants.parseTrigger('/gdocsfoo x'), null);
+  assert.strictEqual(grants.parseTrigger('/gdrive-editor:grant x'), 'x');
+  assert.strictEqual(grants.parseTrigger('  gdrive: a b'), 'a b');
+  assert.strictEqual(grants.parseTrigger('gdocs: a'), 'a');
+  assert.strictEqual(grants.parseTrigger('/gdrive-editor:grant'), '');
+  for (const p of ['/gdocs-editor:gdocs x', '/gdocs x', 'please gdrive: x', '/gdrive-editor:grantx y']) {
+    assert.strictEqual(grants.parseTrigger(p), null, p);
+  }
 });
 
 test('extractDocIds handles link variants, dedupe and bare tokens', () => {
@@ -147,6 +149,6 @@ test('pruneGrants deletes only files older than the cutoff', () => {
 });
 
 test('pruneGrants on a missing dir returns []', () => {
-  process.env.GDOCS_GRANT_DIR = path.join(os.tmpdir(), 'gdocs-does-not-exist-xyz');
+  process.env.GDRIVE_GRANT_DIR = path.join(os.tmpdir(), 'gdrive-does-not-exist-xyz');
   assert.deepStrictEqual(grants.pruneGrants(30), []);
 });

@@ -1,6 +1,6 @@
 ---
 argument-hint: <doc link> [<doc link> ...] [request]
-description: Grant this session access to Google Docs and work on them with the gdocs-editor skill
+description: Grant this session access to Google Docs and Sheets and work on them
 ---
 
 The Google Docs linked in `$ARGUMENTS` are now granted to this session. The grant hook has already recorded them; if its context line says no doc link was recognized, tell the lead and stop.

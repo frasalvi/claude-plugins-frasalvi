@@ -1,7 +1,7 @@
 /**
  * Review tier: plumbing
  *
- * Per-session grant store for gdocs-editor and parsing of Google Docs links
+ * Per-session grant store for gdrive-editor and parsing of Google Docs links
  * and trigger prompts. Grants live in `<grantDir>/<sessionId>.json`.
  */
 'use strict';
@@ -13,16 +13,16 @@ const path = require('node:path');
 const LINK_RE = /docs\.google\.com\/document\/(?:u\/\d+\/)?d\/([A-Za-z0-9_-]+)/g;
 const BARE_RE = /^[A-Za-z0-9_-]{25,}$/;
 const SESSION_RE = /^[A-Za-z0-9_-]+$/;
-const TRIGGER_RE = /^\s*(?:\/gdocs-editor:gdocs|\/gdocs|gdocs:)(?:\s+([\s\S]*)|\s*)$/;
+const TRIGGER_RE = /^\s*(?:\/gdrive-editor:grant|gdrive:|gdocs:)(?:\s+([\s\S]*)|\s*)$/;
 
 /**
  * Return the directory holding grant files.
  *
  * Returns:
- *   `GDOCS_GRANT_DIR` if set, else `~/.claude/gdocs-grants`.
+ *   `GDRIVE_GRANT_DIR` if set, else `~/.claude/gdrive-grants`.
  */
 function grantDir() {
-  return process.env.GDOCS_GRANT_DIR || path.join(os.homedir(), '.claude', 'gdocs-grants');
+  return process.env.GDRIVE_GRANT_DIR || path.join(os.homedir(), '.claude', 'gdrive-grants');
 }
 
 /**
