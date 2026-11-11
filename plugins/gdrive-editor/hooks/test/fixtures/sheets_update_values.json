@@ -1,0 +1,4 @@
+{
+  "tool_name": "mcp__claude_ai_Google_Sheets__update_values",
+  "tool_input": { "spreadsheetId": "1uZYbz9ZhWlqgxrrGkMAOkT0-xI203wCzku6FXav4470", "range": "Data!D1", "values": [["=1+1"]] }
+}
