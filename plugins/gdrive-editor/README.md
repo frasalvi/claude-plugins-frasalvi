@@ -2,40 +2,54 @@
 
 > **Living document** — current state only. No history, decision-rationale, or which-subtask-did-what notes; keep it current.
 
-A Claude Code plugin that lets an agent work on Google Docs as a scientific editor, through the claude.ai Google Docs connector. The agent can reach only the docs you grant to a session, and it can only add suggestions and comments.
+A Claude Code plugin that lets an agent work on Google Docs and Google Sheets through the claude.ai connectors. The agent can reach only the files you grant to a session. In Docs it works as a scientific editor and can only add suggestions and comments. In Sheets it edits directly, on your instruction, and reports every range it changed so you can find it in version history.
 
 ## Setup
 
-- Connect only the **claude.ai Google Docs** connector, via `/mcp`. Never connect Google Drive: it can search and list files, which is exactly the exposure this plugin avoids. The gatekeeper denies Drive calls anyway.
+- Connect the **claude.ai Google Docs** and **claude.ai Google Sheets** connectors, via `/mcp`. Never connect Google Drive: it can search and list files, which is exactly the exposure this plugin avoids. The gatekeeper denies Drive calls anyway.
 - Node must be on the PATH (the hooks are plain Node, no dependencies).
-- The Google Docs connector is off by default in new claude.ai chats. Switch it on there only knowingly, because chats are not gated (see Known limits).
+- The Google Docs connector is off by default in new claude.ai chats. Switch the connectors on there only knowingly, because chats are not gated (see Known limits).
 
 ## Usage
 
-- `/gdrive-editor:grant <doc link> [<doc link> ...] [request]` grants the linked docs to the current session and carries out the request with the `gdocs-editor` skill. Typing `/grant` and picking the command from the autocomplete list gets you there.
-- `gdrive: <doc link> [request]` at the start of a message does the same in plain text.
-- With no request, the agent reads each doc and reports its open AI TODOs.
+- `/gdrive-editor:grant <link> [<link> ...] [request]` grants the linked docs and spreadsheets to the current session and carries out the request, with the `gdocs-editor` skill for docs and the `gsheets-editor` skill for spreadsheets. Typing `/grant` and picking the command from the autocomplete list gets you there.
+- `gdrive: <link> [request]` at the start of a message does the same in plain text (`gdocs:` works too).
+- With no request, the agent reports each doc's open AI TODOs and each spreadsheet's tabs and AI TODOs, and changes nothing.
 
-Only links in a prompt you typed that starts with one of these triggers grant access. A link the agent finds in a web page, a paper, a file or another doc grants nothing, and neither does a prompt that did not come from you (a message from another agent, a scheduled or SDK-driven prompt).
+Only links in a prompt you typed that starts with one of these triggers grant access. A link the agent finds in a web page, a paper, a file or another doc grants nothing, and neither does a prompt that did not come from you (a message from another agent, a scheduled or SDK-driven prompt). Published-to-web links (`/spreadsheets/d/e/…`) grant nothing.
 
 ## Grant lifetime
 
-A grant belongs to one session and is kept when you resume it. Grant files live in `~/.claude/gdrive-grants/` and are pruned at session start once unused for 30 days. Use of a granted doc refreshes its age.
+A grant belongs to one session and is kept when you resume it. Grant files live in `~/.claude/gdrive-grants/` and are pruned at session start once unused for 30 days. Use of a granted file refreshes its age.
 
 ## What the gatekeeper blocks
 
 - Every Google Drive tool.
-- Any Docs call for a doc not granted to the session, and any Docs tool other than `read_doc` and `update_doc`.
+- Any Docs or Sheets call for a file not granted to the session.
+
+In Docs:
+
+- Any Docs tool other than `read_doc` and `update_doc`.
 - Edits outside suggestion mode: every edit request needs `writeControl.writeMode` exactly `SUGGEST`.
 - Accepting, rejecting or deleting suggestions, deleting comments or replies, editing comment posts, and resolving or reopening comment threads.
 - Any request type outside the operations verified to land as suggestions or comments: `insertText`, `deleteContentRange`, `replaceAllText`, `updateTextStyle`, `updateParagraphStyle`, `createParagraphBullets`, `insertComment` and `addCommentReply`. Tables, page breaks and bullet removal are denied.
-- Writes to the grant directory through `Edit`, `Write`, `NotebookEdit`, `Bash` or `PowerShell`.
 
-If the gatekeeper itself fails on a Docs call, the call is denied.
+In Sheets:
+
+- Copying a tab to a spreadsheet that is not granted.
+- Writes containing `IMPORTDATA`, `IMPORTXML`, `IMPORTHTML` or `IMPORTFEED`, in any case.
+- Writes containing an `IMPORTRANGE` whose source is not a granted spreadsheet written as a literal link or ID (a cell reference or a built-up string is denied).
+- Requests that add, update or refresh an external data source.
+
+Everything else in a granted spreadsheet is allowed, including deleting tabs, rows and ranges.
+
+Everywhere: writes to the grant directory through `Edit`, `Write`, `NotebookEdit`, `Bash` or `PowerShell`. If the gatekeeper itself fails on a Google call, the call is denied.
 
 ## Known limits
 
-- claude.ai chats are not gated: Claude Code hooks do not run there. The connector cannot search, so a chat reaches a doc only if its link is in that chat.
+- claude.ai chats are not gated: Claude Code hooks do not run there. The connectors cannot search, so a chat reaches a file only if its link is in that chat.
+- A granted spreadsheet that already imports another file's data (an `IMPORTRANGE` or data source you set up) shows that data to the agent. The gatekeeper checks what the agent writes, not what it reads.
+- Plain text that names an import function followed by a parenthesis, such as `importdata(`, is refused as if it were a formula.
 - It is not hardened against a deliberately hostile agent on your machine, for example one that finds a creative shell command to rewrite a grant file.
 
 ## Tests
