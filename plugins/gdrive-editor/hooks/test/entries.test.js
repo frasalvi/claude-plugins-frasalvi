@@ -1,7 +1,7 @@
 /**
  * Review tier: plumbing
  *
- * Tests for the gdocs-editor hook entry points and hooks.json wiring.
+ * Tests for the gdrive-editor hook entry points and hooks.json wiring.
  */
 'use strict';
 
@@ -23,7 +23,7 @@ const LINK = `https://docs.google.com/document/d/${A}/edit?tab=t.0`;
  *   The directory path.
  */
 function tmpDir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), 'gdocs-entries-'));
+  return fs.mkdtempSync(path.join(os.tmpdir(), 'gdrive-entries-'));
 }
 
 /**
@@ -32,7 +32,7 @@ function tmpDir() {
  * Args:
  *   script: Script file name under hooks/.
  *   stdin: Raw stdin text.
- *   dir: Value for GDOCS_GRANT_DIR.
+ *   dir: Value for GDRIVE_GRANT_DIR.
  *
  * Returns:
  *   The spawnSync result.
@@ -41,7 +41,7 @@ function run(script, stdin, dir) {
   return spawnSync(process.execPath, [path.join(HOOKS, script)], {
     input: stdin,
     encoding: 'utf8',
-    env: { ...process.env, GDOCS_GRANT_DIR: dir },
+    env: { ...process.env, GDRIVE_GRANT_DIR: dir },
   });
 }
 
@@ -62,7 +62,7 @@ function fixtureInput(name, sessionId) {
 
 test('grant.js records granted ids and reports them', () => {
   const dir = tmpDir();
-  const r = run('grant.js', JSON.stringify({ session_id: 's1', prompt: `/gdocs ${LINK} please fix the intro` }), dir);
+  const r = run('grant.js', JSON.stringify({ session_id: 's1', prompt: `/gdrive-editor:grant ${LINK} please fix the intro` }), dir);
   assert.strictEqual(r.status, 0);
   assert.deepStrictEqual(JSON.parse(fs.readFileSync(path.join(dir, 's1.json'), 'utf8')), { docs: [A] });
   const out = JSON.parse(r.stdout).hookSpecificOutput;
@@ -81,23 +81,23 @@ test('grant.js ignores a prompt that is not a trigger', () => {
 test('grant.js grants only for source user or absent', () => {
   for (const source of ['system', 'sdk', 'loop_wakeup', 'schedule_wakeup', 'poll_event', 'weird', null]) {
     const dir = tmpDir();
-    const r = run('grant.js', JSON.stringify({ session_id: 's1', source, prompt: `/gdocs ${LINK}` }), dir);
+    const r = run('grant.js', JSON.stringify({ session_id: 's1', source, prompt: `/gdrive-editor:grant ${LINK}` }), dir);
     assert.strictEqual(r.status, 0, String(source));
     assert.strictEqual(r.stdout, '', String(source));
     assert.deepStrictEqual(fs.readdirSync(dir), [], String(source));
   }
   const dir = tmpDir();
-  const r = run('grant.js', JSON.stringify({ session_id: 's1', source: 'user', prompt: `/gdocs ${LINK}` }), dir);
+  const r = run('grant.js', JSON.stringify({ session_id: 's1', source: 'user', prompt: `/gdrive-editor:grant ${LINK}` }), dir);
   assert.ok(r.stdout.includes(A));
   assert.deepStrictEqual(fs.readdirSync(dir), ['s1.json']);
 });
 
-test('grant.js with a bare /gdocs says no link was recognized', () => {
+test('grant.js with a bare grant command says no link was recognized', () => {
   const dir = tmpDir();
-  const r = run('grant.js', JSON.stringify({ session_id: 's1', prompt: '/gdocs' }), dir);
+  const r = run('grant.js', JSON.stringify({ session_id: 's1', prompt: '/gdrive-editor:grant' }), dir);
   assert.strictEqual(r.status, 0);
   assert.deepStrictEqual(fs.readdirSync(dir), []);
-  assert.match(JSON.parse(r.stdout).hookSpecificOutput.additionalContext, /no .*link.* recognized/i);
+  assert.match(JSON.parse(r.stdout).hookSpecificOutput.additionalContext, /^No Google Docs or Sheets link was recognized in the grant prompt; nothing was granted\.$/);
 });
 
 test('grant.js exits 0 silently on bad stdin', () => {
@@ -108,7 +108,7 @@ test('grant.js exits 0 silently on bad stdin', () => {
 
 test('gate.js allows a granted doc silently and denies an ungranted session', () => {
   const dir = tmpDir();
-  run('grant.js', JSON.stringify({ session_id: 's1', prompt: `/gdocs ${LINK}` }), dir);
+  run('grant.js', JSON.stringify({ session_id: 's1', prompt: `/gdrive-editor:grant ${LINK}` }), dir);
   const ok = run('gate.js', fixtureInput('read_doc', 's1'), dir);
   assert.strictEqual(ok.status, 0);
   assert.strictEqual(ok.stdout, '');
@@ -117,7 +117,7 @@ test('gate.js allows a granted doc silently and denies an ungranted session', ()
   const out = JSON.parse(no.stdout).hookSpecificOutput;
   assert.strictEqual(out.hookEventName, 'PreToolUse');
   assert.strictEqual(out.permissionDecision, 'deny');
-  assert.match(out.permissionDecisionReason, /\/gdocs/);
+  assert.match(out.permissionDecisionReason, /\/gdrive-editor:grant/);
 });
 
 test('gate.js denies a hostile session id on a Docs call', () => {
@@ -137,7 +137,7 @@ test('gate.js denies malformed stdin only when it mentions Google', () => {
   assert.strictEqual(bad.status, 0);
   const out = JSON.parse(bad.stdout).hookSpecificOutput;
   assert.strictEqual(out.permissionDecision, 'deny');
-  assert.match(out.permissionDecisionReason, /^gdocs gatekeeper error: /);
+  assert.match(out.permissionDecisionReason, /^gdrive gatekeeper error: /);
 
   const other = run('gate.js', 'not json', dir);
   assert.strictEqual(other.status, 0);

@@ -1,7 +1,7 @@
 /**
  * Review tier: plumbing
  *
- * Pure gatekeeper policy for gdocs-editor: decides whether a tool call is
+ * Pure gatekeeper policy for gdrive-editor: decides whether a tool call is
  * allowed, denied, or none of our business. Does no I/O.
  */
 'use strict';
@@ -13,7 +13,7 @@ const DRIVE_PREFIX = 'mcp__claude_ai_Google_Drive__';
 const FILE_WRITE_TOOLS = new Set(['Edit', 'Write', 'NotebookEdit', 'Bash', 'PowerShell']);
 const DOCS_TOOLS = new Set(['read_doc', 'update_doc']);
 const NOT_GRANTED =
-  'This Google Doc is not granted to this session. Ask the lead to run `/gdocs-editor:gdocs <link>` or send `gdocs: <link>`.';
+  'This file is not granted to this session. Ask the lead to run `/gdrive-editor:grant <link>` or send `gdrive: <link>`.';
 
 const ALWAYS_DENIED = new Set([
   'acceptSuggestion',
@@ -34,11 +34,11 @@ const EDIT_OPS = new Set([
 ]);
 
 const GRANT_DIR_FORMS = [
-  '~/.claude/gdocs-grants',
-  '$home/.claude/gdocs-grants',
-  '${home}/.claude/gdocs-grants',
-  '%userprofile%/.claude/gdocs-grants',
-  '.claude/gdocs-grants',
+  '~/.claude/gdrive-grants',
+  '$home/.claude/gdrive-grants',
+  '${home}/.claude/gdrive-grants',
+  '%userprofile%/.claude/gdrive-grants',
+  '.claude/gdrive-grants',
 ];
 
 /**
@@ -155,7 +155,7 @@ function decideFileWrite(input, grantDirPath) {
   const forms = [...GRANT_DIR_FORMS];
   if (typeof grantDirPath === 'string' && grantDirPath) forms.push(slashNormalize(grantDirPath));
   if (forms.some((f) => text.includes(f))) {
-    return { decision: 'deny', reason: 'The gdocs grant directory is protected.' };
+    return { decision: 'deny', reason: 'The gdrive grant directory is protected.' };
   }
   return { decision: 'pass' };
 }

@@ -1,7 +1,7 @@
 /**
  * Review tier: plumbing
  *
- * Tests for the gdocs gatekeeper policy.
+ * Tests for the gdrive gatekeeper policy.
  */
 'use strict';
 
@@ -14,7 +14,7 @@ const { decide, classify } = require('../lib/policy');
 
 const ID = '1qFpuCbnDk5ydaFHVohmDGcD9oAIuR_Jk1GaqnFghaFg';
 const G = [ID];
-const DIR = 'C:\\Users\\x\\.claude\\gdocs-grants';
+const DIR = 'C:\\Users\\x\\.claude\\gdrive-grants';
 const UPDATE = 'mcp__claude_ai_Google_Docs__update_doc';
 const FIXTURES = path.join(__dirname, 'fixtures');
 
@@ -55,7 +55,7 @@ for (const name of ['read_doc', 'update_doc_suggest', 'update_doc_comment', 'upd
     assert.strictEqual(decide(input, G, DIR).decision, 'allow');
     const denied = decide(input, [], DIR);
     assert.strictEqual(denied.decision, 'deny');
-    assert.match(denied.reason, /\/gdocs-editor:gdocs <link>.*gdocs: <link>/);
+    assert.match(denied.reason, /^This file is not granted to this session\. Ask the lead to run `\/gdrive-editor:grant <link>` or send `gdrive: <link>`\.$/);
   });
 }
 
@@ -154,15 +154,16 @@ test('classify', () => {
 test('file writes to the grant dir are denied in every path form', () => {
   const bash = (command) => ({ tool_name: 'Bash', tool_input: { command } });
   const cases = [
-    bash('rm C:\\Users\\x\\.claude\\gdocs-grants\\s.json'),
-    bash('echo > ~/.claude/gdocs-grants/s.json'),
-    bash('cp a $HOME/.claude/GDOCS-GRANTS/s.json'),
-    bash('cp a ${HOME}/.claude/gdocs-grants/s.json'),
-    bash('rm /c/Users/x/.claude/gdocs-grants/s.json'),
-    { tool_name: 'PowerShell', tool_input: { command: 'del %USERPROFILE%\\.claude\\gdocs-grants\\s.json' } },
+    bash('rm C:\\Users\\x\\.claude\\gdrive-grants\\s.json'),
+    bash('echo > ~/.claude/gdrive-grants/s.json'),
+    bash('cp a $HOME/.claude/GDRIVE-GRANTS/s.json'),
+    bash('cp a ${HOME}/.claude/gdrive-grants/s.json'),
+    bash('rm /c/Users/x/.claude/gdrive-grants/s.json'),
+    { tool_name: 'PowerShell', tool_input: { command: 'del %USERPROFILE%\\.claude\\gdrive-grants\\s.json' } },
     { tool_name: 'Write', tool_input: { file_path: `${DIR}\\s.json`, content: '{}' } },
   ];
   for (const c of cases) assert.strictEqual(decide(c, G, DIR).decision, 'deny', JSON.stringify(c));
+  assert.strictEqual(decide(cases[1], G, DIR).reason, 'The gdrive grant directory is protected.');
 });
 
 test('custom grant dir is protected', () => {

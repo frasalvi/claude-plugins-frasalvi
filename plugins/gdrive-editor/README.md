@@ -1,4 +1,4 @@
-# gdocs-editor
+# gdrive-editor
 
 > **Living document** — current state only. No history, decision-rationale, or which-subtask-did-what notes; keep it current.
 
@@ -12,15 +12,15 @@ A Claude Code plugin that lets an agent work on Google Docs as a scientific edit
 
 ## Usage
 
-- `/gdocs-editor:gdocs <doc link> [<doc link> ...] [request]` grants the linked docs to the current session and carries out the request with the `gdocs-editor` skill. Typing `/gdocs` and picking the command from the autocomplete list gets you there.
-- `gdocs: <doc link> [request]` at the start of a message does the same in plain text.
+- `/gdrive-editor:grant <doc link> [<doc link> ...] [request]` grants the linked docs to the current session and carries out the request with the `gdocs-editor` skill. Typing `/grant` and picking the command from the autocomplete list gets you there.
+- `gdrive: <doc link> [request]` at the start of a message does the same in plain text.
 - With no request, the agent reads each doc and reports its open AI TODOs.
 
 Only links in a prompt you typed that starts with one of these triggers grant access. A link the agent finds in a web page, a paper, a file or another doc grants nothing, and neither does a prompt that did not come from you (a message from another agent, a scheduled or SDK-driven prompt).
 
 ## Grant lifetime
 
-A grant belongs to one session and is kept when you resume it. Grant files live in `~/.claude/gdocs-grants/` and are pruned at session start once unused for 30 days. Use of a granted doc refreshes its age.
+A grant belongs to one session and is kept when you resume it. Grant files live in `~/.claude/gdrive-grants/` and are pruned at session start once unused for 30 days. Use of a granted doc refreshes its age.
 
 ## What the gatekeeper blocks
 
@@ -41,5 +41,5 @@ If the gatekeeper itself fails on a Docs call, the call is denied.
 ## Tests
 
 ```
-node --test plugins/gdocs-editor/hooks/test/*.test.js
+node --test plugins/gdrive-editor/hooks/test/*.test.js
 ```

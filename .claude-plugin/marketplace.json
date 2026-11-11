@@ -80,14 +80,15 @@
             ]
         },
         {
-            "name": "gdocs-editor",
-            "description": "Edit Google Docs granted per session through the claude.ai Google Docs connector, as a scientific editor working only in suggestions and comments.",
-            "source": "./plugins/gdocs-editor",
+            "name": "gdrive-editor",
+            "description": "Edit Google Docs and Sheets granted per session through the claude.ai connectors: Docs as a scientific editor in suggestions and comments only, Sheets by direct edits on your instruction.",
+            "source": "./plugins/gdrive-editor",
             "category": "productivity",
             "version": "1.0.0",
             "license": "MIT",
             "keywords": [
                 "google docs",
+                "google sheets",
                 "writing",
                 "editing",
                 "scientific writing"
