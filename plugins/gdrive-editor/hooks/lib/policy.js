@@ -27,6 +27,14 @@ const ALWAYS_DENIED = new Set([
 const COMMENT_OPS = new Set(['insertComment', 'addCommentReply']);
 // Any other op touching suggestions or comments could bypass the lead's review.
 const REVIEW_OP_RE = /suggestion|comment/i;
+// Ops Docs cannot apply as suggestions that leave the text untouched; they may run outside SUGGEST.
+const DIRECT_OPS = new Set([
+  'addDocumentTab',
+  'updateDocumentTabProperties',
+  'updateDocumentStyle',
+  'createNamedRange',
+  'deleteNamedRange',
+]);
 
 const GRANT_DIR_FORMS = [
   '~/.claude/gdrive-grants',
@@ -75,8 +83,8 @@ function slashNormalize(s) {
  *   toolInput: The update_doc tool input.
  *
  * Returns:
- *   A denial reason, or null if every request is an allowed comment op or an
- *   edit sent in SUGGEST mode.
+ *   A denial reason, or null if no request is denied and every text edit is
+ *   sent in SUGGEST mode.
  */
 function checkRequests(toolInput) {
   const requests = toolInput.requests;
@@ -101,7 +109,7 @@ function checkRequests(toolInput) {
       }
     } else if (REVIEW_OP_RE.test(op) && !COMMENT_OPS.has(op)) {
       return `The ${op} operation is not allowed.`;
-    } else if (!COMMENT_OPS.has(op)) {
+    } else if (!COMMENT_OPS.has(op) && !DIRECT_OPS.has(op)) {
       hasEdit = true;
     }
   }

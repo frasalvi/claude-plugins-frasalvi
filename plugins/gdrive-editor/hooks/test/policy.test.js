@@ -79,6 +79,21 @@ test('writeMode must be exactly SUGGEST for edits', () => {
   assert.strictEqual(decide(update(edit, SUGGEST), G, DIR).decision, 'allow');
 });
 
+test('ops that cannot be suggestions are allowed without SUGGEST, alone or with comments', () => {
+  for (const op of ['addDocumentTab', 'updateDocumentTabProperties', 'updateDocumentStyle', 'createNamedRange', 'deleteNamedRange']) {
+    for (const wc of [undefined, {}, { writeMode: 'EDIT' }, SUGGEST]) {
+      assert.strictEqual(decide(update([{ [op]: {} }], wc), G, DIR).decision, 'allow', `${op} ${JSON.stringify(wc)}`);
+    }
+    assert.strictEqual(decide(update([{ insertComment: { content: 'c' } }, { [op]: {} }]), G, DIR).decision, 'allow', op);
+  }
+});
+
+test('a direct op does not let a text edit skip SUGGEST', () => {
+  const mixed = [{ addDocumentTab: {} }, { insertText: { text: 'x' } }];
+  assert.strictEqual(decide(update(mixed), G, DIR).decision, 'deny');
+  assert.strictEqual(decide(update(mixed, { writeMode: 'EDIT' }), G, DIR).decision, 'deny');
+});
+
 test('comment mixed with an edit needs SUGGEST', () => {
   const mixed = [{ insertComment: { content: 'c' } }, { insertText: { text: 'x' } }];
   assert.strictEqual(decide(update(mixed), G, DIR).decision, 'deny');
@@ -112,7 +127,7 @@ test('any other Docs operation is allowed, in SUGGEST only', () => {
   const ops = [
     'insertText', 'deleteContentRange', 'replaceAllText', 'updateTextStyle', 'updateParagraphStyle',
     'createParagraphBullets', 'insertTable', 'insertPageBreak', 'deleteParagraphBullets', 'insertTableRow',
-    'addDocumentTab', 'updateDocumentTabProperties', 'updateDocumentStyle', 'createNamedRange',
+    'insertInlineImage', 'insertSectionBreak', 'createFootnote',
   ];
   for (const op of ops) {
     assert.strictEqual(decide(update([{ [op]: {} }], SUGGEST), G, DIR).decision, 'allow', op);

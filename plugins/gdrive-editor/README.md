@@ -2,7 +2,7 @@
 
 > **Living document** — current state only. No history, decision-rationale, or which-subtask-did-what notes; keep it current.
 
-A Claude Code plugin that lets an agent work on Google Docs and Google Sheets through the claude.ai connectors. The agent can reach only the files you grant to a session. In Docs it works as a scientific editor through suggestions and comments, and cannot accept suggestions or remove or resolve comments. In Sheets it edits directly, on your instruction, and reports every range it changed so you can find it in version history.
+A Claude Code plugin that lets an agent work on Google Docs and Google Sheets through the claude.ai connectors. The agent can reach only the files you grant to a session. In Docs it works as a scientific editor through suggestions and comments (only tabs, page setup and named ranges change directly), and cannot accept suggestions or remove or resolve comments. In Sheets it edits directly, on your instruction, and reports every range it changed so you can find it in version history.
 
 ## Setup
 
@@ -30,7 +30,7 @@ A grant belongs to one session and is kept when you resume it. Grant files live 
 In Docs:
 
 - Any Docs tool other than `read_doc` and `update_doc`.
-- Edits outside suggestion mode: every call with an edit needs `writeControl.writeMode` exactly `SUGGEST`. Any edit operation is allowed in that mode, including tabs, tables and page breaks. Google may apply operations it cannot suggest directly; version history undoes them.
+- Edits outside suggestion mode: every call that edits needs `writeControl.writeMode` exactly `SUGGEST`. Any edit operation is allowed in that mode, including tables and page breaks; Google may apply some it cannot suggest directly, and version history undoes them. The exceptions are operations that cannot be suggestions and leave the text untouched: creating and renaming tabs (`addDocumentTab`, `updateDocumentTabProperties`), page setup (`updateDocumentStyle`) and named ranges (`createNamedRange`, `deleteNamedRange`). These may be sent without `SUGGEST` and apply directly.
 - Accepting, rejecting or deleting suggestions, deleting comments or replies, editing comment posts, and resolving or reopening comment threads. Any other operation whose name mentions suggestions or comments is denied too; only `insertComment` and non-resolving `addCommentReply` are allowed.
 - Deleting a tab.
 

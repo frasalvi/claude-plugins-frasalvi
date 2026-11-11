@@ -64,12 +64,14 @@ Send suggestions and their comments in one `update_doc` call:
 }
 ```
 
-- Every call that edits uses `writeMode: "SUGGEST"` exactly. Comments alone may omit `writeControl`.
+- Every call that edits text uses `writeMode: "SUGGEST"` exactly. Comments alone may omit `writeControl`.
 - A reply is `{"addCommentReply": {"commentId": "...", "post": {"content": "[Opus 5.5] ...", "commentAction": "NO_COMMENT_ACTION_CHANGE"}}}`. `commentAction` goes inside `post`. Never resolve or reopen a thread.
 - A comment is `{"insertComment": {"content": "[Opus 5.5] ...", "range": {"startIndex": N, "endIndex": M, "tabId": "t.0"}}}`.
 - Each request holds exactly one operation.
 - These edit operations are verified to land as suggestions: `insertText`, `deleteContentRange`, `replaceAllText`, `updateTextStyle`, `updateParagraphStyle` and `createParagraphBullets`. Do text work with them.
-- Other edit operations (tabs, tables, page breaks, document style and more) are allowed, still with `writeMode: "SUGGEST"`. Google may apply some of them directly instead of as a suggestion, so use them only when the request needs them. Say in your report which ones you used and whether they landed as suggestions. Deleting a tab is denied: ask the lead to do it.
+- Other edit operations (tables, images, page breaks, footnotes and more) are allowed, still with `writeMode: "SUGGEST"`. Google may apply some of them directly instead of as a suggestion, so use them only when the request needs them. Say in your report which ones you used and whether they landed as suggestions.
+- A few operations cannot be suggestions and do not touch the text: `addDocumentTab`, `updateDocumentTabProperties` (renaming a tab), `updateDocumentStyle` (margins, page size, background), `createNamedRange` and `deleteNamedRange`. Send them in their own call without `writeMode` (comments may ride along), and only when the request needs them. They apply directly, so list them in your report. To fill a new tab, read the doc again for its `tabId`, then insert the text as suggestions in a separate call.
+- Deleting a tab is denied: ask the lead to do it.
 - To replace text, send `deleteContentRange` on [s, e) and then `insertText` at index s, in that order, in the same call: `[{"deleteContentRange": {"range": {"startIndex": 97, "endIndex": 109, "tabId": "t.0"}}}, {"insertText": {"location": {"index": 97, "tabId": "t.0"}, "text": "wanting for a long time"}}]`. The new text appears at s with the struck old text right after it, and the pair is one suggestion.
 - A suggested deletion does not remove characters, so later indices do not shrink. A suggested insertion adds characters. Work from the end of the document backwards within one call and every earlier position stays valid.
 - `replaceAllText` hits every match in the doc (all tabs unless `tabsCriteria` limits it). Use it only for a deliberate doc-wide replacement; otherwise replace by index.
