@@ -49,6 +49,7 @@ Everywhere: writes to the grant directory through `Edit`, `Write`, `NotebookEdit
 
 - claude.ai chats are not gated: Claude Code hooks do not run there. The connectors cannot search, so a chat reaches a file only if its link is in that chat.
 - A granted spreadsheet that already imports another file's data (an `IMPORTRANGE` or data source you set up) shows that data to the agent. The gatekeeper checks what the agent writes, not what it reads.
+- If such an `IMPORTRANGE` takes its source from a cell, an ordinary value write to that cell re-points it, and the gatekeeper does not see an import. The `gsheets-editor` skill forbids this, but only the skill does. This works only for sources the spreadsheet has already been allowed to access.
 - Plain text that names an import function followed by a parenthesis, such as `importdata(`, is refused as if it were a formula.
 - It is not hardened against a deliberately hostile agent on your machine, for example one that finds a creative shell command to rewrite a grant file.
 
