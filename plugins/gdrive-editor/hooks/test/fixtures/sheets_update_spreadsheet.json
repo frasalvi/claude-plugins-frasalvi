@@ -1,0 +1,16 @@
+{
+  "tool_name": "mcp__claude_ai_Google_Sheets__update_spreadsheet",
+  "tool_input": {
+    "spreadsheetId": "1uZYbz9ZhWlqgxrrGkMAOkT0-xI203wCzku6FXav4470",
+    "requests": [
+      {
+        "repeatCell": {
+          "range": { "sheetId": 0, "startRowIndex": 0, "endRowIndex": 1, "startColumnIndex": 0, "endColumnIndex": 2 },
+          "cell": { "userEnteredFormat": { "textFormat": { "bold": true } } },
+          "fields": "userEnteredFormat.textFormat.bold"
+        }
+      }
+    ],
+    "writeControl": {}
+  }
+}

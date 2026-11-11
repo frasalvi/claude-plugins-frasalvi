@@ -1,0 +1,4 @@
+{
+  "tool_name": "mcp__claude_ai_Google_Sheets__copy_sheet_to_another_spreadsheet",
+  "tool_input": { "spreadsheetId": "1uZYbz9ZhWlqgxrrGkMAOkT0-xI203wCzku6FXav4470", "sheetId": 656396775, "destinationSpreadsheetId": "1uZYbz9ZhWlqgxrrGkMAOkT0-xI203wCzku6FXav4470" }
+}
