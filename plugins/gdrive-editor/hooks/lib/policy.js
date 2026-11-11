@@ -6,7 +6,7 @@
  */
 'use strict';
 
-const { normalizeDocId } = require('./grants');
+const { normalizeFileId } = require('./grants');
 
 const DOCS_PREFIX = 'mcp__claude_ai_Google_Docs__';
 const DRIVE_PREFIX = 'mcp__claude_ai_Google_Drive__';
@@ -119,7 +119,7 @@ function checkRequests(toolInput) {
  *
  * Args:
  *   input: The hook input object.
- *   grants: Doc ids granted to the session.
+ *   grants: File ids granted to the session.
  *
  * Returns:
  *   A decision object.
@@ -129,7 +129,7 @@ function decideDocs(input, grants) {
   const suffix = name.slice(name.lastIndexOf('__') + 2);
   if (!DOCS_TOOLS.has(suffix)) return { decision: 'deny', reason: `Docs tool ${suffix} is not allowed.` };
   const toolInput = input.tool_input && typeof input.tool_input === 'object' ? input.tool_input : {};
-  const id = normalizeDocId(toolInput.documentId);
+  const id = normalizeFileId(toolInput.documentId);
   if (id === null || !Array.isArray(grants) || !grants.includes(id)) {
     return { decision: 'deny', reason: NOT_GRANTED };
   }
@@ -167,7 +167,7 @@ function decideFileWrite(input, grantDirPath) {
  *
  * Args:
  *   input: The hook input object.
- *   grants: Doc ids granted to the session.
+ *   grants: File ids granted to the session.
  *   grantDirPath: The grant directory path.
  *
  * Returns:

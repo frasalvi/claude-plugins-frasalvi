@@ -7,7 +7,7 @@
 'use strict';
 
 const fs = require('node:fs');
-const { parseTrigger, extractDocIds, addGrants } = require('./lib/grants');
+const { parseTrigger, extractFileIds, addGrants } = require('./lib/grants');
 
 /**
  * Handle one UserPromptSubmit event from stdin.
@@ -20,10 +20,10 @@ function main() {
   if (input.source !== undefined && input.source !== 'user') return;
   const rest = parseTrigger(input.prompt);
   if (rest === null) return;
-  const ids = extractDocIds(rest);
-  const granted = ids.length ? addGrants(input.session_id, ids) : [];
+  const files = extractFileIds(rest);
+  const granted = files.length ? addGrants(input.session_id, files.map((f) => f.id)) : [];
   const context = granted.length
-    ? `Google Docs granted to this session: ${ids.join(', ')}`
+    ? `Files granted to this session: ${files.map((f) => `${f.id} (${f.kind})`).join(', ')}.`
     : 'No Google Docs or Sheets link was recognized in the grant prompt; nothing was granted.';
   process.stdout.write(
     JSON.stringify({
