@@ -7,13 +7,13 @@
 'use strict';
 
 const { normalizeFileId } = require('./grants');
+const { decideSheets, NOT_GRANTED } = require('./sheets');
 
 const DOCS_PREFIX = 'mcp__claude_ai_Google_Docs__';
+const SHEETS_PREFIX = 'mcp__claude_ai_Google_Sheets__';
 const DRIVE_PREFIX = 'mcp__claude_ai_Google_Drive__';
 const FILE_WRITE_TOOLS = new Set(['Edit', 'Write', 'NotebookEdit', 'Bash', 'PowerShell']);
 const DOCS_TOOLS = new Set(['read_doc', 'update_doc']);
-const NOT_GRANTED =
-  'This file is not granted to this session. Ask the lead to run `/gdrive-editor:grant <link>` or send `gdrive: <link>`.';
 
 const ALWAYS_DENIED = new Set([
   'acceptSuggestion',
@@ -48,12 +48,13 @@ const GRANT_DIR_FORMS = [
  *   input: The hook input object.
  *
  * Returns:
- *   'docs', 'drive', 'file-write' or 'other'.
+ *   'docs', 'sheets', 'drive', 'file-write' or 'other'.
  */
 function classify(input) {
   const name = typeof input?.tool_name === 'string' ? input.tool_name : '';
   const server = typeof input?.mcp_server?.name === 'string' ? input.mcp_server.name : '';
   if (/google docs/i.test(server) || name.startsWith(DOCS_PREFIX)) return 'docs';
+  if (/google sheets/i.test(server) || name.startsWith(SHEETS_PREFIX)) return 'sheets';
   if (/google drive/i.test(server) || name.startsWith(DRIVE_PREFIX)) return 'drive';
   if (FILE_WRITE_TOOLS.has(name)) return 'file-write';
   return 'other';
@@ -163,7 +164,7 @@ function decideFileWrite(input, grantDirPath) {
 /**
  * Decide whether a tool call is allowed, denied, or not ours.
  *
- * Docs and Drive calls fail closed: any error yields a denial.
+ * Docs, Sheets and Drive calls fail closed: any error yields a denial.
  *
  * Args:
  *   input: The hook input object.
@@ -179,11 +180,12 @@ function decide(input, grants, grantDirPath) {
     kind = classify(input);
     if (kind === 'drive') return { decision: 'deny', reason: 'Google Drive tools are not allowed.' };
     if (kind === 'docs') return decideDocs(input, grants);
+    if (kind === 'sheets') return decideSheets(input, grants);
     if (kind === 'file-write') return decideFileWrite(input, grantDirPath);
     return { decision: 'pass' };
   } catch (err) {
-    if (kind === 'docs' || kind === 'drive') {
-      return { decision: 'deny', reason: 'Could not evaluate the Docs call.' };
+    if (kind === 'docs' || kind === 'sheets' || kind === 'drive') {
+      return { decision: 'deny', reason: 'Could not evaluate the Google call.' };
     }
     return { decision: 'pass' };
   }

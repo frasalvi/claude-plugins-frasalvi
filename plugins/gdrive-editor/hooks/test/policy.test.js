@@ -146,6 +146,8 @@ test('mcp_server name classifies docs, with the suffix after the last __', () =>
 
 test('classify', () => {
   assert.strictEqual(classify({ tool_name: 'mcp__x__y', mcp_server: { name: 'claude.ai Google Drive' } }), 'drive');
+  assert.strictEqual(classify({ tool_name: 'x', mcp_server: { name: 'claude.ai Google Sheets' } }), 'sheets');
+  assert.strictEqual(classify({ tool_name: 'mcp__claude_ai_Google_Sheets__get_values' }), 'sheets');
   assert.strictEqual(classify({ tool_name: 'Bash' }), 'file-write');
   assert.strictEqual(classify({ tool_name: 'Read' }), 'other');
   assert.strictEqual(classify(null), 'other');
@@ -175,4 +177,12 @@ test('unrelated tool calls pass', () => {
   assert.strictEqual(decide({ tool_name: 'Bash', tool_input: { command: 'ls src' } }, G, DIR).decision, 'pass');
   const read = { tool_name: 'Read', tool_input: { file_path: `${DIR}\\s.json` } };
   assert.strictEqual(decide(read, G, DIR).decision, 'pass');
+});
+
+test('decide routes Sheets calls and fails closed on them', () => {
+  const sheet = { tool_name: 'mcp__claude_ai_Google_Sheets__get_values', tool_input: { spreadsheetId: ID, range: 'A1' } };
+  assert.strictEqual(decide(sheet, G, DIR).decision, 'allow');
+  assert.strictEqual(decide(sheet, [], DIR).decision, 'deny');
+  const hostile = { tool_name: 'mcp__claude_ai_Google_Sheets__update_values', get tool_input() { throw new Error('boom'); } };
+  assert.strictEqual(decide(hostile, G, DIR).decision, 'deny');
 });

@@ -50,7 +50,7 @@ function main() {
     if (result.decision === 'deny') deny(result.reason);
     else if (result.decision === 'allow') touchGrant(input.session_id);
   } catch (err) {
-    if (/Google_Docs|Google_Drive|Google Docs/.test(raw)) {
+    if (/Google_(Docs|Sheets|Drive)|Google (Docs|Sheets|Drive)/.test(raw)) {
       deny(`gdrive gatekeeper error: ${err.message}`);
     }
   }
