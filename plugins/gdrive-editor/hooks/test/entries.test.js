@@ -153,6 +153,9 @@ test('gate.js denies malformed stdin only when it mentions Google', () => {
   assert.strictEqual(other.status, 0);
   assert.strictEqual(other.stdout, '');
 
+  const sheets = run('gate.js', '{"tool_name":"mcp__claude_ai_Google_Sheets__get_values",', dir);
+  assert.strictEqual(JSON.parse(sheets.stdout).hookSpecificOutput.permissionDecision, 'deny');
+
   const empty = run('gate.js', '', dir);
   assert.strictEqual(empty.status, 0);
   assert.strictEqual(empty.stdout, '');
@@ -187,4 +190,15 @@ test('hooks.json is valid and points at existing scripts', () => {
   assert.strictEqual(pre.hooks[0].timeout, 10);
   assert.strictEqual(pre.hooks[0].onFailure, 'block');
   assert.ok(cfg.hooks.UserPromptSubmit && cfg.hooks.SessionStart);
+});
+
+test('gate.js allows a granted spreadsheet silently and denies an ungranted session', () => {
+  const dir = tmpDir();
+  const sheet = 'https://docs.google.com/spreadsheets/d/1uZYbz9ZhWlqgxrrGkMAOkT0-xI203wCzku6FXav4470/edit';
+  run('grant.js', JSON.stringify({ session_id: 's1', prompt: `gdrive: ${sheet}` }), dir);
+  const ok = run('gate.js', fixtureInput('sheets_update_values', 's1'), dir);
+  assert.strictEqual(ok.status, 0);
+  assert.strictEqual(ok.stdout, '');
+  const no = run('gate.js', fixtureInput('sheets_update_values', 's2'), dir);
+  assert.strictEqual(JSON.parse(no.stdout).hookSpecificOutput.permissionDecision, 'deny');
 });
