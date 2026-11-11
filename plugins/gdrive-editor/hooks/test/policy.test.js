@@ -92,6 +92,7 @@ for (const op of [
   'deleteComment',
   'deleteCommentReply',
   'updateCommentPost',
+  'deleteTab',
 ]) {
   test(`${op} is always denied`, () => {
     assert.strictEqual(decide(update([{ [op]: {} }], SUGGEST), G, DIR).decision, 'deny');
@@ -107,21 +108,25 @@ test('addCommentReply rejects any commentAction other than NO_COMMENT_ACTION_CHA
   assert.strictEqual(decide(reply({ commentId: 'c', post: { content: 'x' } }), G, DIR).decision, 'allow');
 });
 
-test('edit ops not verified to land as suggestions are denied', () => {
-  for (const op of ['insertTable', 'insertPageBreak', 'deleteParagraphBullets', 'insertTableRow', 'insertTableColumn', 'deleteTableRow', 'deleteTableColumn']) {
-    assert.strictEqual(decide(update([{ [op]: {} }], SUGGEST), G, DIR).decision, 'deny', op);
-  }
-});
-
-test('verified edit ops are allowed in SUGGEST only', () => {
-  for (const op of ['insertText', 'deleteContentRange', 'replaceAllText', 'updateTextStyle', 'updateParagraphStyle', 'createParagraphBullets']) {
+test('any other Docs operation is allowed, in SUGGEST only', () => {
+  const ops = [
+    'insertText', 'deleteContentRange', 'replaceAllText', 'updateTextStyle', 'updateParagraphStyle',
+    'createParagraphBullets', 'insertTable', 'insertPageBreak', 'deleteParagraphBullets', 'insertTableRow',
+    'addDocumentTab', 'updateDocumentTabProperties', 'updateDocumentStyle', 'createNamedRange',
+  ];
+  for (const op of ops) {
     assert.strictEqual(decide(update([{ [op]: {} }], SUGGEST), G, DIR).decision, 'allow', op);
     assert.strictEqual(decide(update([{ [op]: {} }]), G, DIR).decision, 'deny', op);
   }
 });
 
-test('unknown ops, empty requests and multi-key requests are denied', () => {
-  assert.strictEqual(decide(update([{ createNamedRange: {} }], SUGGEST), G, DIR).decision, 'deny');
+test('operations on suggestions or comments outside the allowed two are denied by name', () => {
+  for (const op of ['acceptAllSuggestions', 'resolveComment', 'updateCommentStatus', 'reopenComment']) {
+    assert.strictEqual(decide(update([{ [op]: {} }], SUGGEST), G, DIR).decision, 'deny', op);
+  }
+});
+
+test('empty, malformed and multi-key requests are denied', () => {
   assert.strictEqual(decide(update([], SUGGEST), G, DIR).decision, 'deny');
   assert.strictEqual(decide(update([{ insertComment: {}, deleteComment: {} }], SUGGEST), G, DIR).decision, 'deny');
   assert.strictEqual(decide(update('nope', SUGGEST), G, DIR).decision, 'deny');
