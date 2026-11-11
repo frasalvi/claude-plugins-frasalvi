@@ -49,6 +49,8 @@ If the lead only gives a link, report the tabs, what each holds, and the open AI
 
 The gatekeeper denies any write containing `IMPORTDATA`, `IMPORTXML`, `IMPORTHTML` or `IMPORTFEED`, an `IMPORTRANGE` of anything but a granted spreadsheet written as a literal link or ID, and external data source requests. It also refuses plain text that merely names one of these functions. These would pull data from other files or the web into the sheet, and from there into your context. If a request needs one, don't look for another route: tell the lead what you would import and let them do it.
 
+The same holds for imports the lead already set up. Never write a link or ID of a Google file that is not granted to this session into a cell. Never change a cell or formula text that an existing `IMPORTRANGE` takes its source from (for example a config cell holding the source URL). Either change would point the import at a file the lead did not grant. If a request needs it, tell the lead instead.
+
 ## Report
 
 End with a report in chat that lets the lead find every change in version history:
