@@ -15,6 +15,7 @@ const { spawnSync } = require('node:child_process');
 const HOOKS = path.join(__dirname, '..');
 const A = '1qFpuCbnDk5ydaFHVohmDGcD9oAIuR_Jk1GaqnFghaFg';
 const LINK = `https://docs.google.com/document/d/${A}/edit?tab=t.0`;
+const S = 'S'.repeat(44);
 
 /**
  * Create a fresh temp grant directory.
@@ -64,10 +65,19 @@ test('grant.js records granted ids and reports them', () => {
   const dir = tmpDir();
   const r = run('grant.js', JSON.stringify({ session_id: 's1', prompt: `/gdrive-editor:grant ${LINK} please fix the intro` }), dir);
   assert.strictEqual(r.status, 0);
-  assert.deepStrictEqual(JSON.parse(fs.readFileSync(path.join(dir, 's1.json'), 'utf8')), { docs: [A] });
+  assert.deepStrictEqual(JSON.parse(fs.readFileSync(path.join(dir, 's1.json'), 'utf8')), { files: [A] });
   const out = JSON.parse(r.stdout).hookSpecificOutput;
   assert.strictEqual(out.hookEventName, 'UserPromptSubmit');
   assert.ok(out.additionalContext.includes(A));
+});
+
+test('grant.js grants a doc and a spreadsheet and names their kinds', () => {
+  const dir = tmpDir();
+  const sheet = `https://docs.google.com/spreadsheets/d/${S}/edit#gid=0`;
+  const r = run('grant.js', JSON.stringify({ session_id: 's1', prompt: `gdrive: ${LINK} ${sheet}` }), dir);
+  const ctx = JSON.parse(r.stdout).hookSpecificOutput.additionalContext;
+  assert.strictEqual(ctx, `Files granted to this session: ${A} (doc), ${S} (spreadsheet).`);
+  assert.deepStrictEqual(JSON.parse(fs.readFileSync(path.join(dir, 's1.json'), 'utf8')), { files: [A, S] });
 });
 
 test('grant.js ignores a prompt that is not a trigger', () => {

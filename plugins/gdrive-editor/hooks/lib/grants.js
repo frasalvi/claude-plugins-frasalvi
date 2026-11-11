@@ -1,8 +1,8 @@
 /**
  * Review tier: plumbing
  *
- * Per-session grant store for gdrive-editor and parsing of Google Docs links
- * and trigger prompts. Grants live in `<grantDir>/<sessionId>.json`.
+ * Per-session grant store for gdrive-editor and parsing of Google Docs and
+ * Sheets links and trigger prompts. Grants live in `<grantDir>/<sessionId>.json`.
  */
 'use strict';
 
@@ -10,7 +10,8 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 
-const LINK_RE = /docs\.google\.com\/document\/(?:u\/\d+\/)?d\/([A-Za-z0-9_-]+)/g;
+const LINK_RE = /docs\.google\.com\/(document|spreadsheets)\/(?:u\/\d+\/)?d\/([A-Za-z0-9_-]{25,})/g;
+const LINK_KIND = { document: 'doc', spreadsheets: 'spreadsheet' };
 const BARE_RE = /^[A-Za-z0-9_-]{25,}$/;
 const SESSION_RE = /^[A-Za-z0-9_-]+$/;
 const TRIGGER_RE = /^\s*(?:\/gdrive-editor:grant|gdrive:|gdocs:)(?:\s+([\s\S]*)|\s*)$/;
@@ -54,47 +55,49 @@ function parseTrigger(prompt) {
 }
 
 /**
- * Extract Google Docs document ids from free text.
+ * Extract Google Docs and Sheets file ids, with their kinds, from free text.
  *
- * Whole whitespace-separated tokens count as bare ids; a token containing a
- * URL counts only through the Docs link pattern.
+ * Whole whitespace-separated tokens count as bare ids of unknown kind; a
+ * token containing a URL counts only through the Docs and Sheets link
+ * patterns.
  *
  * Args:
  *   text: Text that may contain links or bare ids.
  *
  * Returns:
- *   Unique ids in order of appearance.
+ *   `{id, kind}` entries unique by id, first occurrence winning, in order.
+ *   `kind` is 'doc', 'spreadsheet' or 'unknown'.
  */
-function extractDocIds(text) {
+function extractFileIds(text) {
   if (typeof text !== 'string') return [];
-  const ids = [];
+  const found = new Map();
   for (const token of text.split(/\s+/)) {
     const links = [...token.matchAll(LINK_RE)];
     if (links.length) {
-      for (const m of links) ids.push(m[1]);
-    } else if (BARE_RE.test(token)) {
-      ids.push(token);
+      for (const m of links) if (!found.has(m[2])) found.set(m[2], LINK_KIND[m[1]]);
+    } else if (BARE_RE.test(token) && !found.has(token)) {
+      found.set(token, 'unknown');
     }
   }
-  return [...new Set(ids)];
+  return [...found].map(([id, kind]) => ({ id, kind }));
 }
 
 /**
- * Normalize a link or bare id to a document id.
+ * Normalize a Docs or Sheets link, or a bare id, to a file id.
  *
  * Args:
- *   value: A Docs link or bare id.
+ *   value: A Docs or Sheets link, or a bare id.
  *
  * Returns:
- *   The document id, or null if the value is neither.
+ *   The file id, or null if the value is none of these.
  */
-function normalizeDocId(value) {
+function normalizeFileId(value) {
   if (typeof value !== 'string') return null;
   const v = value.trim();
   LINK_RE.lastIndex = 0;
   const m = LINK_RE.exec(v);
   LINK_RE.lastIndex = 0;
-  if (m) return m[1];
+  if (m) return m[2];
   return BARE_RE.test(v) ? v : null;
 }
 
@@ -112,7 +115,7 @@ function grantFile(sessionId) {
 }
 
 /**
- * Read the doc ids granted to a session.
+ * Read the file ids granted to a session.
  *
  * Args:
  *   sessionId: The session id.
@@ -124,31 +127,31 @@ function readGrants(sessionId) {
   if (!isSafeSessionId(sessionId)) return [];
   try {
     const data = JSON.parse(fs.readFileSync(grantFile(sessionId), 'utf8'));
-    return Array.isArray(data.docs) ? data.docs.filter((d) => typeof d === 'string') : [];
+    return Array.isArray(data.files) ? data.files.filter((d) => typeof d === 'string') : [];
   } catch {
     return [];
   }
 }
 
 /**
- * Merge doc ids into a session's grants and write them atomically.
+ * Merge file ids into a session's grants and write them atomically.
  *
  * Args:
  *   sessionId: The session id.
- *   ids: Doc ids to add.
+ *   ids: File ids to add.
  *
  * Returns:
  *   The full grant list; empty (and nothing written) for an unsafe id.
  */
 function addGrants(sessionId, ids) {
   if (!isSafeSessionId(sessionId)) return [];
-  const docs = [...new Set([...readGrants(sessionId), ...ids])];
+  const files = [...new Set([...readGrants(sessionId), ...ids])];
   const file = grantFile(sessionId);
   const tmp = `${file}.${process.pid}.tmp`;
   fs.mkdirSync(grantDir(), { recursive: true });
-  fs.writeFileSync(tmp, JSON.stringify({ docs }));
+  fs.writeFileSync(tmp, JSON.stringify({ files }));
   fs.renameSync(tmp, file);
-  return docs;
+  return files;
 }
 
 /**
@@ -209,8 +212,8 @@ module.exports = {
   grantDir,
   isSafeSessionId,
   parseTrigger,
-  extractDocIds,
-  normalizeDocId,
+  extractFileIds,
+  normalizeFileId,
   readGrants,
   addGrants,
   touchGrant,

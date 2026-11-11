@@ -55,39 +55,51 @@ test('parseTrigger', () => {
   }
 });
 
-test('extractDocIds handles link variants, dedupe and bare tokens', () => {
+const doc = (id) => ({ id, kind: 'doc' });
+const sheet = (id) => ({ id, kind: 'spreadsheet' });
+const unknown = (id) => ({ id, kind: 'unknown' });
+
+test('extractFileIds handles doc link variants, dedupe and bare tokens', () => {
   const text =
     `https://docs.google.com/document/d/${A}/edit?usp=sharing ` +
     `https://docs.google.com/document/u/1/d/${B}/edit#heading=h.x ` +
     `https://docs.google.com/document/d/${A}/edit`;
-  assert.deepStrictEqual(grants.extractDocIds(text), [A, B]);
-  assert.deepStrictEqual(grants.extractDocIds(`  ${C} `), [C]);
+  assert.deepStrictEqual(grants.extractFileIds(text), [doc(A), doc(B)]);
+  assert.deepStrictEqual(grants.extractFileIds(`  ${C} `), [unknown(C)]);
 });
 
-test('extractDocIds rejects short words and non-Docs links', () => {
-  assert.deepStrictEqual(grants.extractDocIds('shortword'), []);
-  assert.deepStrictEqual(
-    grants.extractDocIds(`https://docs.google.com/spreadsheets/d/${C}/edit`),
-    [],
-  );
-  assert.deepStrictEqual(
-    grants.extractDocIds(`https://example.com/${'x'.repeat(40)}`),
-    [],
-  );
+test('extractFileIds gives each link its kind, first occurrence winning', () => {
+  const text =
+    `gdrive: https://docs.google.com/document/d/${A}/edit ` +
+    `https://docs.google.com/spreadsheets/u/0/d/${B}/edit#gid=0 ` +
+    `https://docs.google.com/spreadsheets/d/${B}/edit?gid=123#gid=123 ` +
+    `${C} please`;
+  assert.deepStrictEqual(grants.extractFileIds(text), [doc(A), sheet(B), unknown(C)]);
 });
 
-test('extractDocIds and normalizeDocId handle the real link form', () => {
+test('extractFileIds rejects short words, short link ids, published links and other sites', () => {
+  assert.deepStrictEqual(grants.extractFileIds('shortword'), []);
+  assert.deepStrictEqual(grants.extractFileIds('https://docs.google.com/document/d/abcdefghij/edit'), []);
+  assert.deepStrictEqual(
+    grants.extractFileIds('https://docs.google.com/spreadsheets/d/e/2PACX-1vQabc/pubhtml'),
+    [],
+  );
+  assert.deepStrictEqual(grants.extractFileIds(`https://example.com/${'x'.repeat(40)}`), []);
+});
+
+test('extractFileIds and normalizeFileId handle the real link form', () => {
   const link = `https://docs.google.com/document/d/${REAL}/edit?tab=t.0`;
-  assert.deepStrictEqual(grants.extractDocIds(link), [REAL]);
-  assert.strictEqual(grants.normalizeDocId(link), REAL);
+  assert.deepStrictEqual(grants.extractFileIds(link), [doc(REAL)]);
+  assert.strictEqual(grants.normalizeFileId(link), REAL);
 });
 
-test('normalizeDocId', () => {
-  assert.strictEqual(grants.normalizeDocId(`https://docs.google.com/document/d/${A}/edit`), A);
-  assert.strictEqual(grants.normalizeDocId(A), A);
-  assert.strictEqual(grants.normalizeDocId('short'), null);
-  assert.strictEqual(grants.normalizeDocId(null), null);
-  assert.strictEqual(grants.normalizeDocId(42), null);
+test('normalizeFileId', () => {
+  assert.strictEqual(grants.normalizeFileId(`https://docs.google.com/document/d/${A}/edit`), A);
+  assert.strictEqual(grants.normalizeFileId(`https://docs.google.com/spreadsheets/d/${B}/edit#gid=0`), B);
+  assert.strictEqual(grants.normalizeFileId(A), A);
+  assert.strictEqual(grants.normalizeFileId('short'), null);
+  assert.strictEqual(grants.normalizeFileId(null), null);
+  assert.strictEqual(grants.normalizeFileId(42), null);
 });
 
 test('addGrants merges and readGrants returns them', () => {
@@ -96,6 +108,14 @@ test('addGrants merges and readGrants returns them', () => {
   assert.deepStrictEqual(grants.addGrants('s1', [B, A]), [A, B]);
   assert.deepStrictEqual(grants.readGrants('s1'), [A, B]);
   assert.deepStrictEqual(grants.readGrants('other'), []);
+});
+
+test('grant files hold a files list; a docs-only file reads as empty', () => {
+  const dir = freshDir();
+  grants.addGrants('s1', [A]);
+  assert.deepStrictEqual(JSON.parse(fs.readFileSync(path.join(dir, 's1.json'), 'utf8')), { files: [A] });
+  fs.writeFileSync(path.join(dir, 's2.json'), JSON.stringify({ docs: [A] }));
+  assert.deepStrictEqual(grants.readGrants('s2'), []);
 });
 
 test('unsafe session ids create nothing', () => {
