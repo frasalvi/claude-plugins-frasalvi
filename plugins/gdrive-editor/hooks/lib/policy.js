@@ -22,16 +22,11 @@ const ALWAYS_DENIED = new Set([
   'deleteComment',
   'deleteCommentReply',
   'updateCommentPost',
+  'deleteTab',
 ]);
 const COMMENT_OPS = new Set(['insertComment', 'addCommentReply']);
-const EDIT_OPS = new Set([
-  'insertText',
-  'deleteContentRange',
-  'replaceAllText',
-  'updateTextStyle',
-  'updateParagraphStyle',
-  'createParagraphBullets',
-]);
+// Any other op touching suggestions or comments could bypass the lead's review.
+const REVIEW_OP_RE = /suggestion|comment/i;
 
 const GRANT_DIR_FORMS = [
   '~/.claude/gdrive-grants',
@@ -80,7 +75,8 @@ function slashNormalize(s) {
  *   toolInput: The update_doc tool input.
  *
  * Returns:
- *   A denial reason, or null if the requests are suggestion/comment only.
+ *   A denial reason, or null if every request is an allowed comment op or an
+ *   edit sent in SUGGEST mode.
  */
 function checkRequests(toolInput) {
   const requests = toolInput.requests;
@@ -103,10 +99,10 @@ function checkRequests(toolInput) {
       if (actions.some((a) => a !== undefined && a !== 'NO_COMMENT_ACTION_CHANGE')) {
         return 'Replies may not resolve or reopen comment threads.';
       }
-    } else if (EDIT_OPS.has(op)) {
-      hasEdit = true;
-    } else if (!COMMENT_OPS.has(op)) {
+    } else if (REVIEW_OP_RE.test(op) && !COMMENT_OPS.has(op)) {
       return `The ${op} operation is not allowed.`;
+    } else if (!COMMENT_OPS.has(op)) {
+      hasEdit = true;
     }
   }
   if (hasEdit && toolInput.writeControl?.writeMode !== 'SUGGEST') {

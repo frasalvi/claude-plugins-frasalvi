@@ -1,6 +1,6 @@
 {
     "name": "gdrive-editor",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Edit Google Docs and Sheets granted per session through the claude.ai connectors: Docs as a scientific editor in suggestions and comments only, Sheets by direct edits on your instruction.",
     "author": {
         "name": "Francesco Salvi",
