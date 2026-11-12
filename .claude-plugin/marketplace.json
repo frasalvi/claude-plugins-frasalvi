@@ -93,6 +93,21 @@
                 "editing",
                 "scientific writing"
             ]
+        },
+        {
+            "name": "gpt-images",
+            "description": "Generate and refine images with GPT through the Codex CLI: several ideas in parallel, a side-by-side page to pick from, targeted revisions, and post-processing for exact text, logos and transparent cutouts.",
+            "source": "./plugins/gpt-images",
+            "category": "productivity",
+            "version": "1.0.0",
+            "license": "MIT",
+            "keywords": [
+                "images",
+                "image generation",
+                "gpt",
+                "codex",
+                "illustration"
+            ]
         }
     ]
 }
