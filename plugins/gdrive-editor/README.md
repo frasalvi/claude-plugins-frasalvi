@@ -7,7 +7,7 @@ A Claude Code plugin that lets an agent work on Google Docs and Google Sheets th
 ## Setup
 
 - Connect the **claude.ai Google Docs** and **claude.ai Google Sheets** connectors, via `/mcp`. Never connect Google Drive: it can search and list files, which is exactly the exposure this plugin avoids. The gatekeeper denies Drive calls anyway.
-- Node must be on the PATH (the hooks are plain Node, no dependencies).
+- Node must be on the PATH that Claude Code starts with (the hooks are plain Node, no dependencies). Without it, every MCP call is denied until Node is installed and Claude restarted; `Bash`, `Edit` and the other file tools keep working, so you can install it from the session.
 - The Google Docs connector is off by default in new claude.ai chats. Switch the connectors on there only knowingly, because chats are not gated (see Known limits).
 
 ## Usage
@@ -43,7 +43,7 @@ In Sheets:
 
 Everything else in a granted spreadsheet is allowed, including deleting tabs, rows and ranges.
 
-Everywhere: writes to the grant directory through `Edit`, `Write`, `NotebookEdit`, `Bash` or `PowerShell`. If the gatekeeper itself fails on a Google call, the call is denied.
+Everywhere: writes to the grant directory through `Edit`, `Write`, `NotebookEdit`, `Bash` or `PowerShell`. If the gatekeeper itself fails on a Google call, the call is denied. Every MCP call fails closed when the gatekeeper cannot run, because a Google server need not carry the `claude_ai_Google_` prefix; the file tools are let through only when Node is missing entirely, since no grant can exist without it.
 
 ## Known limits
 
