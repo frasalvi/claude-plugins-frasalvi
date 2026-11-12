@@ -1,0 +1,17 @@
+{
+    "name": "gpt-images",
+    "version": "1.0.0",
+    "description": "Generate and refine images with GPT through the Codex CLI: several ideas in parallel, a side-by-side page to pick from, targeted revisions, and post-processing for exact text, logos and transparent cutouts.",
+    "author": {
+        "name": "Francesco Salvi",
+        "email": "salvi.fnc@gmail.com"
+    },
+    "license": "MIT",
+    "keywords": [
+        "images",
+        "image generation",
+        "gpt",
+        "codex",
+        "illustration"
+    ]
+}
