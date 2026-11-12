@@ -17,7 +17,7 @@ imgs=()
 for r in "$@"; do imgs+=("--image=$(realpath "$r")"); done
 "$codex_bin" exec -m "$model" -s read-only --skip-git-repo-check --ephemeral -C "$work" ${imgs[@]+"${imgs[@]}"} -- "$prompt" \
   < /dev/null > "$work/log.txt" 2>&1 || true
-sid="$(grep -o 'session id: [0-9a-f-]*' "$work/log.txt" | head -1 | awk '{print $3}')"
+sid="$(grep -o 'session id: [0-9a-f-]*' "$work/log.txt" | head -1 | awk '{print $3}' || true)"
 img="$(ls -t "$HOME/.codex/generated_images/$sid/"*.png 2>/dev/null | head -1 || true)"
 if [ -z "$sid" ] || [ -z "$img" ]; then echo "no image produced; log: $work/log.txt" >&2; exit 1; fi
 mkdir -p "$(dirname "$out")"
