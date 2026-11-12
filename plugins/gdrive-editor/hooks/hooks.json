@@ -9,11 +9,22 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "mcp__.*|^Edit$|^Write$|^NotebookEdit$|^Bash$|^PowerShell$",
+        "matcher": "mcp__.*",
         "hooks": [
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/gate.js\"",
+            "timeout": 10,
+            "onFailure": "block"
+          }
+        ]
+      },
+      {
+        "matcher": "^Edit$|^Write$|^NotebookEdit$|^Bash$|^PowerShell$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/hooks/gate.js\"",
             "timeout": 10,
             "onFailure": "block"
           }

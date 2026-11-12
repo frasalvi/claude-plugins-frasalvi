@@ -179,17 +179,43 @@ test('hooks.json is valid and points at existing scripts', () => {
   for (const groups of Object.values(cfg.hooks)) {
     for (const g of groups) for (const h of g.hooks) cmds.push(h);
   }
-  assert.strictEqual(cmds.length, 3);
+  assert.strictEqual(cmds.length, 4);
   for (const h of cmds) {
-    const m = /^node "\$\{CLAUDE_PLUGIN_ROOT\}\/hooks\/([\w-]+\.js)"$/.exec(h.command);
+    const m = /^(?:command -v node >\/dev\/null 2>&1 \|\| exit 0; )?node "\$\{CLAUDE_PLUGIN_ROOT\}\/hooks\/([\w-]+\.js)"$/.exec(h.command);
     assert.ok(m, h.command);
     assert.ok(fs.existsSync(path.join(HOOKS, m[1])), m[1]);
   }
-  const pre = cfg.hooks.PreToolUse[0];
-  assert.strictEqual(pre.matcher, 'mcp__.*|^Edit$|^Write$|^NotebookEdit$|^Bash$|^PowerShell$');
-  assert.strictEqual(pre.hooks[0].timeout, 10);
-  assert.strictEqual(pre.hooks[0].onFailure, 'block');
+  const [mcp, files] = cfg.hooks.PreToolUse;
+  assert.strictEqual(mcp.matcher, 'mcp__.*');
+  assert.strictEqual(mcp.hooks[0].command, 'node "${CLAUDE_PLUGIN_ROOT}/hooks/gate.js"');
+  assert.strictEqual(files.matcher, '^Edit$|^Write$|^NotebookEdit$|^Bash$|^PowerShell$');
+  assert.match(files.hooks[0].command, /^command -v node /);
+  for (const pre of [mcp, files]) {
+    assert.strictEqual(pre.hooks[0].timeout, 10);
+    assert.strictEqual(pre.hooks[0].onFailure, 'block');
+  }
   assert.ok(cfg.hooks.UserPromptSubmit && cfg.hooks.SessionStart);
+});
+
+test('the file-write gate passes when node is missing and still gates when present', { skip: process.platform === 'win32' }, () => {
+  const cfg = JSON.parse(fs.readFileSync(path.join(HOOKS, 'hooks.json'), 'utf8'));
+  const cmd = cfg.hooks.PreToolUse[1].hooks[0].command;
+  const root = path.join(HOOKS, '..');
+  const dir = tmpDir();
+  const write = JSON.stringify({ session_id: 's1', tool_name: 'Write', tool_input: { file_path: path.join(dir, 's1.json') } });
+  const sh = (pathVar) => spawnSync('/bin/sh', ['-c', cmd], {
+    input: write,
+    encoding: 'utf8',
+    env: { PATH: pathVar, CLAUDE_PLUGIN_ROOT: root, GDRIVE_GRANT_DIR: dir },
+  });
+
+  const missing = sh(tmpDir());
+  assert.strictEqual(missing.status, 0);
+  assert.strictEqual(missing.stdout, '');
+
+  const present = sh(path.dirname(process.execPath));
+  assert.strictEqual(present.status, 0);
+  assert.strictEqual(JSON.parse(present.stdout).hookSpecificOutput.permissionDecision, 'deny');
 });
 
 test('gate.js allows a granted spreadsheet silently and denies an ungranted session', () => {
