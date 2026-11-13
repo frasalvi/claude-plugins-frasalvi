@@ -97,6 +97,22 @@ test('a Sheets chart must come from a granted spreadsheet', () => {
   assert.strictEqual(out.reason, 'Sheets charts may only come from a spreadsheet granted to this session.');
 });
 
+test('a replacement Sheets chart must come from a granted spreadsheet', () => {
+  const replace = (spreadsheetId) =>
+    update([{ replaceAllShapesWithSheetsChart: { spreadsheetId, chartId: 1, linkingMode: 'LINKED', containsText: { text: '{{chart}}' } } }]);
+  const out = decideSlides(replace(S), [D]);
+  assert.strictEqual(out.decision, 'deny');
+  assert.strictEqual(out.reason, 'Sheets charts may only come from a spreadsheet granted to this session.');
+  assert.strictEqual(verdict(replace(S), [D, S]), 'allow');
+  assert.strictEqual(verdict(replace(undefined), [D, S]), 'deny');
+});
+
+test('a spreadsheetId anywhere in a request must be granted', () => {
+  const nested = update([{ someFutureOp: { source: { spreadsheetId: S } } }]);
+  assert.strictEqual(verdict(nested, [D]), 'deny');
+  assert.strictEqual(verdict(nested, [D, S]), 'allow');
+});
+
 test('a chart request later in the batch is still checked', () => {
   const requests = [
     { createSlide: {} },

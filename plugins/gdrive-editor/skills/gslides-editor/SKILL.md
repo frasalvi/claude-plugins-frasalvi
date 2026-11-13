@@ -46,7 +46,7 @@ If the lead only gives a link, report the slides (number, title, what each holds
 
 ## Refused embeds
 
-The gatekeeper denies a Sheets chart (`createSheetsChart`) from a spreadsheet that is not granted to this session, and any video from Google Drive (`createVideo` with source `DRIVE`). These would copy another file's content into the deck, and from there into your context. If a request needs one, tell the lead which spreadsheet or video it needs: they can grant the spreadsheet, or insert the video themselves.
+The gatekeeper denies a Sheets chart (`createSheetsChart` or `replaceAllShapesWithSheetsChart`), or any request naming a spreadsheet, when that spreadsheet is not granted to this session, and any video from Google Drive (`createVideo` with source `DRIVE`). These would copy another file's content into the deck, and from there into your context. If a request needs one, tell the lead which spreadsheet or video it needs: they can grant the spreadsheet, or insert the video themselves.
 
 The same holds for embeds the lead already set up. Never refresh (`refreshSheetsChart`) a linked chart whose `spreadsheetId` is not granted to this session, and never write a link or ID of a Google file that is not granted into the deck. If a request needs it, tell the lead instead.
 

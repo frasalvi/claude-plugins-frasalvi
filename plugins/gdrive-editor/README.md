@@ -46,7 +46,7 @@ Everything else in a granted spreadsheet is allowed, including deleting tabs, ro
 In Slides:
 
 - Any Slides tool other than `read_presentation`, `read_slide_page`, `read_slide_page_thumbnail` and `update_presentation`.
-- Inserting a Sheets chart from a spreadsheet that is not granted.
+- Inserting a Sheets chart from a spreadsheet that is not granted, whether as a new chart or in place of matching shapes; more generally, any request that names a spreadsheet that is not granted.
 - Inserting a video from Google Drive.
 
 Everything else in a granted presentation is allowed, including deleting slides and inserting images from public URLs.

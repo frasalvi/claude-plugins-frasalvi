@@ -84,7 +84,7 @@
             "description": "Edit Google Docs, Sheets and Slides granted per session through the claude.ai connectors: Docs as a scientific editor in suggestions and comments only, Sheets and Slides by direct edits on your instruction.",
             "source": "./plugins/gdrive-editor",
             "category": "productivity",
-            "version": "1.3.0",
+            "version": "1.3.1",
             "license": "MIT",
             "keywords": [
                 "google docs",
