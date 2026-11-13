@@ -11,6 +11,30 @@ const { normalizeFileId, NOT_GRANTED } = require('./grants');
 
 const READ_TOOLS = new Set(['read_presentation', 'read_slide_page', 'read_slide_page_thumbnail']);
 const WRITE_TOOLS = new Set(['update_presentation']);
+const CHART_OPS = new Set(['createSheetsChart', 'replaceAllShapesWithSheetsChart']);
+const CHART_DENIED = 'Sheets charts may only come from a spreadsheet granted to this session.';
+
+/**
+ * Collect every value stored under a `spreadsheetId` key, at any depth.
+ *
+ * Args:
+ *   value: Any JSON-like value.
+ *   out: Accumulator array.
+ *
+ * Returns:
+ *   The accumulator, holding each such value.
+ */
+function collectSpreadsheetIds(value, out = []) {
+  if (Array.isArray(value)) {
+    for (const v of value) collectSpreadsheetIds(v, out);
+  } else if (value !== null && typeof value === 'object') {
+    for (const [k, v] of Object.entries(value)) {
+      if (k === 'spreadsheetId') out.push(v);
+      else collectSpreadsheetIds(v, out);
+    }
+  }
+  return out;
+}
 
 /**
  * Find the reason an update_presentation call must be denied, if any.
@@ -29,12 +53,12 @@ function writeViolation(toolInput, grants) {
     if (req === null || typeof req !== 'object' || Array.isArray(req)) {
       return 'Malformed update_presentation request.';
     }
-    const chart = req.createSheetsChart;
-    if (chart !== undefined) {
-      const id = normalizeFileId(chart?.spreadsheetId);
-      if (id === null || !grants.includes(id)) {
-        return 'Sheets charts may only come from a spreadsheet granted to this session.';
-      }
+    // chart ops need a source, and any spreadsheet a request names must be granted
+    const ids = collectSpreadsheetIds(req);
+    if (Object.keys(req).some((k) => CHART_OPS.has(k)) && ids.length === 0) return CHART_DENIED;
+    for (const value of ids) {
+      const id = normalizeFileId(value);
+      if (id === null || !grants.includes(id)) return CHART_DENIED;
     }
     const source = req.createVideo?.source;
     if (typeof source === 'string' && source.toUpperCase() === 'DRIVE') {
