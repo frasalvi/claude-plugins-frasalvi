@@ -168,6 +168,8 @@ test('classify', () => {
   assert.strictEqual(classify({ tool_name: 'mcp__x__y', mcp_server: { name: 'claude.ai Google Drive' } }), 'drive');
   assert.strictEqual(classify({ tool_name: 'x', mcp_server: { name: 'claude.ai Google Sheets' } }), 'sheets');
   assert.strictEqual(classify({ tool_name: 'mcp__claude_ai_Google_Sheets__get_values' }), 'sheets');
+  assert.strictEqual(classify({ tool_name: 'x', mcp_server: { name: 'claude.ai Google Slides' } }), 'slides');
+  assert.strictEqual(classify({ tool_name: 'mcp__claude_ai_Google_Slides__read_presentation' }), 'slides');
   assert.strictEqual(classify({ tool_name: 'Bash' }), 'file-write');
   assert.strictEqual(classify({ tool_name: 'Read' }), 'other');
   assert.strictEqual(classify(null), 'other');
@@ -204,5 +206,13 @@ test('decide routes Sheets calls and fails closed on them', () => {
   assert.strictEqual(decide(sheet, G, DIR).decision, 'allow');
   assert.strictEqual(decide(sheet, [], DIR).decision, 'deny');
   const hostile = { tool_name: 'mcp__claude_ai_Google_Sheets__update_values', get tool_input() { throw new Error('boom'); } };
+  assert.strictEqual(decide(hostile, G, DIR).decision, 'deny');
+});
+
+test('decide routes Slides calls and fails closed on them', () => {
+  const deck = { tool_name: 'mcp__claude_ai_Google_Slides__read_presentation', tool_input: { presentationId: ID } };
+  assert.strictEqual(decide(deck, G, DIR).decision, 'allow');
+  assert.strictEqual(decide(deck, [], DIR).decision, 'deny');
+  const hostile = { tool_name: 'mcp__claude_ai_Google_Slides__update_presentation', get tool_input() { throw new Error('boom'); } };
   assert.strictEqual(decide(hostile, G, DIR).decision, 'deny');
 });

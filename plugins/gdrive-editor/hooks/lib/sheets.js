@@ -7,10 +7,8 @@
  */
 'use strict';
 
-const { normalizeFileId } = require('./grants');
+const { normalizeFileId, NOT_GRANTED } = require('./grants');
 
-const NOT_GRANTED =
-  'This file is not granted to this session. Ask the lead to run `/gdrive-editor:grant <link>` or send `gdrive: <link>`.';
 const READ_TOOLS = new Set(['get_values', 'get_spreadsheet']);
 const WRITE_TOOLS = new Set([
   'update_values',
@@ -129,4 +127,4 @@ function decideSheets(input, grants) {
   return { decision: 'allow' };
 }
 
-module.exports = { decideSheets, NOT_GRANTED };
+module.exports = { decideSheets };

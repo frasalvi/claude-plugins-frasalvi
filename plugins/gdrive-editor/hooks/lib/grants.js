@@ -1,8 +1,8 @@
 /**
  * Review tier: plumbing
  *
- * Per-session grant store for gdrive-editor and parsing of Google Docs and
- * Sheets links and trigger prompts. Grants live in `<grantDir>/<sessionId>.json`.
+ * Per-session grant store for gdrive-editor and parsing of Google Docs,
+ * Sheets and Slides links and trigger prompts. Grants live in `<grantDir>/<sessionId>.json`.
  */
 'use strict';
 
@@ -10,10 +10,12 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 
-const LINK_RE = /docs\.google\.com\/(document|spreadsheets)\/(?:u\/\d+\/)?d\/([A-Za-z0-9_-]{25,})/g;
-const LINK_KIND = { document: 'doc', spreadsheets: 'spreadsheet' };
+const LINK_RE = /docs\.google\.com\/(document|spreadsheets|presentation)\/(?:u\/\d+\/)?d\/([A-Za-z0-9_-]{25,})/g;
+const LINK_KIND = { document: 'doc', spreadsheets: 'spreadsheet', presentation: 'presentation' };
 const BARE_RE = /^[A-Za-z0-9_-]{25,}$/;
 const SESSION_RE = /^[A-Za-z0-9_-]+$/;
+const NOT_GRANTED =
+  'This file is not granted to this session. Ask the lead to run `/gdrive-editor:grant <link>` or send `gdrive: <link>`.';
 const TRIGGER_RE = /^\s*(?:\/gdrive-editor:grant|gdrive:|gdocs:)(?:\s+([\s\S]*)|\s*)$/;
 
 /**
@@ -55,18 +57,18 @@ function parseTrigger(prompt) {
 }
 
 /**
- * Extract Google Docs and Sheets file ids, with their kinds, from free text.
+ * Extract Google Docs, Sheets and Slides file ids, with their kinds, from free text.
  *
  * Whole whitespace-separated tokens count as bare ids of unknown kind; a
- * token containing a URL counts only through the Docs and Sheets link
- * patterns.
+ * token containing a URL counts only through the Docs, Sheets and Slides
+ * link patterns.
  *
  * Args:
  *   text: Text that may contain links or bare ids.
  *
  * Returns:
  *   `{id, kind}` entries unique by id, first occurrence winning, in order.
- *   `kind` is 'doc', 'spreadsheet' or 'unknown'.
+ *   `kind` is 'doc', 'spreadsheet', 'presentation' or 'unknown'.
  */
 function extractFileIds(text) {
   if (typeof text !== 'string') return [];
@@ -83,10 +85,10 @@ function extractFileIds(text) {
 }
 
 /**
- * Normalize a Docs or Sheets link, or a bare id, to a file id.
+ * Normalize a Docs, Sheets or Slides link, or a bare id, to a file id.
  *
  * Args:
- *   value: A Docs or Sheets link, or a bare id.
+ *   value: A Docs, Sheets or Slides link, or a bare id.
  *
  * Returns:
  *   The file id, or null if the value is none of these.
@@ -209,6 +211,7 @@ function pruneGrants(maxAgeDays, now = Date.now()) {
 }
 
 module.exports = {
+  NOT_GRANTED,
   grantDir,
   isSafeSessionId,
   parseTrigger,
