@@ -57,6 +57,7 @@ test('parseTrigger', () => {
 
 const doc = (id) => ({ id, kind: 'doc' });
 const sheet = (id) => ({ id, kind: 'spreadsheet' });
+const deck = (id) => ({ id, kind: 'presentation' });
 const unknown = (id) => ({ id, kind: 'unknown' });
 
 test('extractFileIds handles doc link variants, dedupe and bare tokens', () => {
@@ -75,6 +76,14 @@ test('extractFileIds gives each link its kind, first occurrence winning', () => 
     `https://docs.google.com/spreadsheets/d/${B}/edit?gid=123#gid=123 ` +
     `${C} please`;
   assert.deepStrictEqual(grants.extractFileIds(text), [doc(A), sheet(B), unknown(C)]);
+});
+
+test('extractFileIds recognizes presentation links', () => {
+  const text =
+    `https://docs.google.com/presentation/d/${A}/edit#slide=id.p ` +
+    `https://docs.google.com/presentation/u/2/d/${B}/edit?usp=sharing`;
+  assert.deepStrictEqual(grants.extractFileIds(text), [deck(A), deck(B)]);
+  assert.deepStrictEqual(grants.extractFileIds('https://docs.google.com/presentation/d/e/2PACX-1vQabc/pub'), []);
 });
 
 test('extractFileIds rejects short words, short link ids, published links and other sites', () => {
@@ -96,6 +105,7 @@ test('extractFileIds and normalizeFileId handle the real link form', () => {
 test('normalizeFileId', () => {
   assert.strictEqual(grants.normalizeFileId(`https://docs.google.com/document/d/${A}/edit`), A);
   assert.strictEqual(grants.normalizeFileId(`https://docs.google.com/spreadsheets/d/${B}/edit#gid=0`), B);
+  assert.strictEqual(grants.normalizeFileId(`https://docs.google.com/presentation/d/${C}/edit#slide=id.p`), C);
   assert.strictEqual(grants.normalizeFileId(A), A);
   assert.strictEqual(grants.normalizeFileId('short'), null);
   assert.strictEqual(grants.normalizeFileId(null), null);

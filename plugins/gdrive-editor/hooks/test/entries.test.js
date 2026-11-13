@@ -16,6 +16,7 @@ const HOOKS = path.join(__dirname, '..');
 const A = '1qFpuCbnDk5ydaFHVohmDGcD9oAIuR_Jk1GaqnFghaFg';
 const LINK = `https://docs.google.com/document/d/${A}/edit?tab=t.0`;
 const S = 'S'.repeat(44);
+const D = 'D'.repeat(44);
 
 /**
  * Create a fresh temp grant directory.
@@ -71,13 +72,14 @@ test('grant.js records granted ids and reports them', () => {
   assert.ok(out.additionalContext.includes(A));
 });
 
-test('grant.js grants a doc and a spreadsheet and names their kinds', () => {
+test('grant.js grants a doc, a spreadsheet and a presentation and names their kinds', () => {
   const dir = tmpDir();
   const sheet = `https://docs.google.com/spreadsheets/d/${S}/edit#gid=0`;
-  const r = run('grant.js', JSON.stringify({ session_id: 's1', prompt: `gdrive: ${LINK} ${sheet}` }), dir);
+  const deck = `https://docs.google.com/presentation/d/${D}/edit#slide=id.p`;
+  const r = run('grant.js', JSON.stringify({ session_id: 's1', prompt: `gdrive: ${LINK} ${sheet} ${deck}` }), dir);
   const ctx = JSON.parse(r.stdout).hookSpecificOutput.additionalContext;
-  assert.strictEqual(ctx, `Files granted to this session: ${A} (doc), ${S} (spreadsheet).`);
-  assert.deepStrictEqual(JSON.parse(fs.readFileSync(path.join(dir, 's1.json'), 'utf8')), { files: [A, S] });
+  assert.strictEqual(ctx, `Files granted to this session: ${A} (doc), ${S} (spreadsheet), ${D} (presentation).`);
+  assert.deepStrictEqual(JSON.parse(fs.readFileSync(path.join(dir, 's1.json'), 'utf8')), { files: [A, S, D] });
 });
 
 test('grant.js ignores a prompt that is not a trigger', () => {
@@ -107,7 +109,7 @@ test('grant.js with a bare grant command says no link was recognized', () => {
   const r = run('grant.js', JSON.stringify({ session_id: 's1', prompt: '/gdrive-editor:grant' }), dir);
   assert.strictEqual(r.status, 0);
   assert.deepStrictEqual(fs.readdirSync(dir), []);
-  assert.match(JSON.parse(r.stdout).hookSpecificOutput.additionalContext, /^No Google Docs or Sheets link was recognized in the grant prompt; nothing was granted\.$/);
+  assert.match(JSON.parse(r.stdout).hookSpecificOutput.additionalContext, /^No Google Docs, Sheets or Slides link was recognized in the grant prompt; nothing was granted\.$/);
 });
 
 test('grant.js exits 0 silently on bad stdin', () => {
@@ -155,6 +157,9 @@ test('gate.js denies malformed stdin only when it mentions Google', () => {
 
   const sheets = run('gate.js', '{"tool_name":"mcp__claude_ai_Google_Sheets__get_values",', dir);
   assert.strictEqual(JSON.parse(sheets.stdout).hookSpecificOutput.permissionDecision, 'deny');
+
+  const slides = run('gate.js', '{"tool_name":"mcp__claude_ai_Google_Slides__read_presentation",', dir);
+  assert.strictEqual(JSON.parse(slides.stdout).hookSpecificOutput.permissionDecision, 'deny');
 
   const empty = run('gate.js', '', dir);
   assert.strictEqual(empty.status, 0);
@@ -226,5 +231,17 @@ test('gate.js allows a granted spreadsheet silently and denies an ungranted sess
   assert.strictEqual(ok.status, 0);
   assert.strictEqual(ok.stdout, '');
   const no = run('gate.js', fixtureInput('sheets_update_values', 's2'), dir);
+  assert.strictEqual(JSON.parse(no.stdout).hookSpecificOutput.permissionDecision, 'deny');
+});
+
+test('gate.js allows a granted presentation silently and denies an ungranted session', () => {
+  const dir = tmpDir();
+  run('grant.js', JSON.stringify({ session_id: 's1', prompt: `gdrive: https://docs.google.com/presentation/d/${D}/edit` }), dir);
+  const input = (session_id) =>
+    JSON.stringify({ session_id, tool_name: 'mcp__claude_ai_Google_Slides__read_presentation', tool_input: { presentationId: D } });
+  const ok = run('gate.js', input('s1'), dir);
+  assert.strictEqual(ok.status, 0);
+  assert.strictEqual(ok.stdout, '');
+  const no = run('gate.js', input('s2'), dir);
   assert.strictEqual(JSON.parse(no.stdout).hookSpecificOutput.permissionDecision, 'deny');
 });

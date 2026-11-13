@@ -1,8 +1,8 @@
 /**
  * Review tier: plumbing
  *
- * UserPromptSubmit hook: records Google Docs ids the user grants with a
- * grant prompt. Never blocks; exits 0 silently on any error.
+ * UserPromptSubmit hook: records the Google Docs, Sheets and Slides ids the
+ * user grants with a grant prompt. Never blocks; exits 0 silently on any error.
  */
 'use strict';
 
@@ -24,7 +24,7 @@ function main() {
   const granted = files.length ? addGrants(input.session_id, files.map((f) => f.id)) : [];
   const context = granted.length
     ? `Files granted to this session: ${files.map((f) => `${f.id} (${f.kind})`).join(', ')}.`
-    : 'No Google Docs or Sheets link was recognized in the grant prompt; nothing was granted.';
+    : 'No Google Docs, Sheets or Slides link was recognized in the grant prompt; nothing was granted.';
   process.stdout.write(
     JSON.stringify({
       hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext: context },
