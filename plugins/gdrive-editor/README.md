@@ -2,21 +2,21 @@
 
 > **Living document** — current state only. No history, decision-rationale, or which-subtask-did-what notes; keep it current.
 
-A Claude Code plugin that lets an agent work on Google Docs and Google Sheets through the claude.ai connectors. The agent can reach only the files you grant to a session. In Docs it works as a scientific editor through suggestions and comments (only tabs, page setup and named ranges change directly), and cannot accept suggestions or remove or resolve comments. In Sheets it edits directly, on your instruction, and reports every range it changed so you can find it in version history.
+A Claude Code plugin that lets an agent work on Google Docs, Sheets and Slides through the claude.ai connectors. The agent can reach only the files you grant to a session. In Docs it works as a scientific editor through suggestions and comments (only tabs, page setup and named ranges change directly), and cannot accept suggestions or remove or resolve comments. In Sheets and Slides it edits directly, on your instruction, and reports every range or slide it changed so you can find it in version history.
 
 ## Setup
 
-- Connect the **claude.ai Google Docs** and **claude.ai Google Sheets** connectors, via `/mcp`. Never connect Google Drive: it can search and list files, which is exactly the exposure this plugin avoids. The gatekeeper denies Drive calls anyway.
+- Connect the **claude.ai Google Docs**, **claude.ai Google Sheets** and **claude.ai Google Slides** connectors, via `/mcp`. Never connect Google Drive: it can search and list files, which is exactly the exposure this plugin avoids. The gatekeeper denies Drive calls anyway.
 - Node must be on the PATH that Claude Code starts with (the hooks are plain Node, no dependencies). Without it, every MCP call is denied until Node is installed and Claude restarted; `Bash`, `Edit` and the other file tools keep working, so you can install it from the session.
 - The Google Docs connector is off by default in new claude.ai chats. Switch the connectors on there only knowingly, because chats are not gated (see Known limits).
 
 ## Usage
 
-- `/gdrive-editor:grant <link> [<link> ...] [request]` grants the linked docs and spreadsheets to the current session and carries out the request, with the `gdocs-editor` skill for docs and the `gsheets-editor` skill for spreadsheets. Typing `/grant` and picking the command from the autocomplete list gets you there.
+- `/gdrive-editor:grant <link> [<link> ...] [request]` grants the linked docs, spreadsheets and presentations to the current session and carries out the request, with the `gdocs-editor` skill for docs, the `gsheets-editor` skill for spreadsheets and the `gslides-editor` skill for presentations. Typing `/grant` and picking the command from the autocomplete list gets you there.
 - `gdrive: <link> [request]` at the start of a message does the same in plain text (`gdocs:` works too).
-- With no request, the agent reports each doc's open AI TODOs and each spreadsheet's tabs and AI TODOs, and changes nothing.
+- With no request, the agent reports each doc's open AI TODOs, each spreadsheet's tabs and AI TODOs, and each presentation's slides and AI TODOs, and changes nothing.
 
-Only links in a prompt you typed that starts with one of these triggers grant access. A link the agent finds in a web page, a paper, a file or another doc grants nothing, and neither does a prompt that did not come from you (a message from another agent, a scheduled or SDK-driven prompt). Published-to-web links (`/spreadsheets/d/e/…`) grant nothing.
+Only links in a prompt you typed that starts with one of these triggers grant access. A link the agent finds in a web page, a paper, a file or another doc grants nothing, and neither does a prompt that did not come from you (a message from another agent, a scheduled or SDK-driven prompt). Published-to-web links (`/spreadsheets/d/e/…`, `/presentation/d/e/…`) grant nothing.
 
 ## Grant lifetime
 
@@ -25,7 +25,7 @@ A grant belongs to one session and is kept when you resume it. Grant files live 
 ## What the gatekeeper blocks
 
 - Every Google Drive tool.
-- Any Docs or Sheets call for a file not granted to the session.
+- Any Docs, Sheets or Slides call for a file not granted to the session.
 
 In Docs:
 
@@ -43,6 +43,14 @@ In Sheets:
 
 Everything else in a granted spreadsheet is allowed, including deleting tabs, rows and ranges.
 
+In Slides:
+
+- Any Slides tool other than `read_presentation`, `read_slide_page`, `read_slide_page_thumbnail` and `update_presentation`.
+- Inserting a Sheets chart from a spreadsheet that is not granted.
+- Inserting a video from Google Drive.
+
+Everything else in a granted presentation is allowed, including deleting slides and inserting images from public URLs.
+
 Everywhere: writes to the grant directory through `Edit`, `Write`, `NotebookEdit`, `Bash` or `PowerShell`. If the gatekeeper itself fails on a Google call, the call is denied. Every MCP call fails closed when the gatekeeper cannot run, because a Google server need not carry the `claude_ai_Google_` prefix; the file tools are let through only when Node is missing entirely, since no grant can exist without it.
 
 ## Known limits
@@ -50,6 +58,7 @@ Everywhere: writes to the grant directory through `Edit`, `Write`, `NotebookEdit
 - claude.ai chats are not gated: Claude Code hooks do not run there. The connectors cannot search, so a chat reaches a file only if its link is in that chat.
 - A granted spreadsheet that already imports another file's data (an `IMPORTRANGE` or data source you set up) shows that data to the agent. The gatekeeper checks what the agent writes, not what it reads.
 - If such an `IMPORTRANGE` takes its source from a cell, an ordinary value write to that cell re-points it, and the gatekeeper does not see an import. The `gsheets-editor` skill forbids this, but only the skill does. This works only for sources the spreadsheet has already been allowed to access.
+- A Sheets chart already linked into a granted deck shows its data to the agent, and refreshing it pulls the current data from its spreadsheet, granted or not. The `gslides-editor` skill forbids refreshing a chart whose spreadsheet is not granted, but only the skill does.
 - Plain text that names an import function followed by a parenthesis, such as `importdata(`, is refused as if it were a formula.
 - It is not hardened against a deliberately hostile agent on your machine, for example one that finds a creative shell command to rewrite a grant file.
 
