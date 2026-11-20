@@ -24,6 +24,8 @@ Use only the Google Slides tools. Never use Google Drive tools.
 
 Every call takes `presentationId`. Slides, shapes, tables and other elements are addressed by `objectId`; text positions are zero-based character indices within one shape or table cell. Sizes and positions use `EMU` (914400 per inch) or `PT`.
 
+Connector quirks are in `mechanics.md`, next to this file. Read it before you create or move shapes, images or slides: shape sizes live in the transform, shadows and crops can't be set, object IDs need at least 5 characters, and images need a public URL.
+
 Use a `fields` mask on reads: a full deck is large. Typical masks are `slides(objectId,pageElements(objectId,shape(text,placeholder),table,image,sheetsChart))` for content and `revisionId` for the write guard. Comments need `commentsIncluded: true` and both `comments` and `slides(objectId,commentAnchors)` in the mask; leave either out and they are silently dropped. A mask path the API does not know fails with "Request contains an invalid argument".
 
 ## Start every request the same way
